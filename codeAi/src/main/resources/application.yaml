@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: codeAi
+
+server:
+  port: 8102
+  servlet:
+    context-path: /api
+
+# springdoc-openapi????
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: com.aizihe.codeaAI.controller
