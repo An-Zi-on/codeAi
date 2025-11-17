@@ -1,7 +1,11 @@
 spring:
   application:
     name: codeAi
-
+  # DataSource Config
+  datasource:
+    url: jdbc:mysql://localhost:3306/an_ai_code
+    username: root
+    password: root
 server:
   port: 8102
   servlet:
@@ -18,4 +22,4 @@ springdoc:
   group-configs:
     - group: 'default'
       paths-to-match: '/**'
-      packages-to-scan: com.aizihe.codeaAI.controller
+      packages-to-scan: com.aizihe.codeaai.controller
