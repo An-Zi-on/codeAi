@@ -3,10 +3,13 @@ package com.aizihe.codeaai.controller;
 import com.aizihe.codeaai.ThrowUtils.BaseResponse;
 import com.aizihe.codeaai.ThrowUtils.ResultUtils;
 import com.aizihe.codeaai.ThrowUtils.ThrowUtils;
+import com.aizihe.codeaai.annotation.MustRole;
+import com.aizihe.codeaai.domain.VO.UserVO;
 import com.aizihe.codeaai.domain.request.user.UserLoginRequest;
 import com.aizihe.codeaai.domain.request.user.UserRegisterRequest;
 import com.aizihe.codeaai.domain.request.user.UserUpdatePwdRequest;
 import com.aizihe.codeaai.domain.request.user.UserUpdateRequest;
+import com.aizihe.codeaai.enums.UserRole;
 import com.aizihe.codeaai.exception.ErrorCode;
 import com.mybatisflex.core.paginate.Page;
 import jakarta.annotation.Resource;
@@ -45,6 +48,7 @@ public class UserController {
      * 仅管理员使用
      */
     @PostMapping("save")
+    @MustRole(needRole = "admin")
     public boolean save(@RequestBody User user) {
         return userService.save(user);
     }
@@ -57,6 +61,7 @@ public class UserController {
      * 根据主键更新用户。
      */
     @DeleteMapping("remove/{id}")
+    @MustRole(needRole = "admin")
     public boolean remove(@PathVariable Long id) {
         return userService.removeById(id);
     }
@@ -100,14 +105,14 @@ public class UserController {
     }
 
     /**
-     * 根据主键获取用户。
+     * 获取当前登入的用户
      *
-     * @param id 用户主键
+     * @param
      * @return 用户详情
      */
-    @GetMapping("getInfo/{id}")
-    public User getInfo(@PathVariable Long id) {
-        return userService.getById(id);
+    @GetMapping("current")
+    public BaseResponse<UserVO> getInfo() {
+        return ResultUtils.success(userService.current());
     }
 
     /**

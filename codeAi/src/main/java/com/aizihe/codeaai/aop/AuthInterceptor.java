@@ -1,9 +1,13 @@
 package com.aizihe.codeaai.aop;
 
+import cn.hutool.json.JSONUtil;
+import com.aizihe.codeaai.ThrowUtils.RedisService;
 import com.aizihe.codeaai.ThrowUtils.ThrowUtils;
 import com.aizihe.codeaai.annotation.MustRole;
 import com.aizihe.codeaai.domain.VO.UserVO;
+import com.aizihe.codeaai.domain.common.Constants;
 import com.aizihe.codeaai.exception.ErrorCode;
+import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.aspectj.lang.JoinPoint;
@@ -22,6 +26,9 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @Component
 public class AuthInterceptor {
 
+    @Resource
+    RedisService redisService;
+
     @Before("@annotation(mustRole)")
     public void checkRole(JoinPoint joinPoint, MustRole mustRole) {
         String requiredRole = mustRole.needRole();
@@ -37,11 +44,9 @@ public class AuthInterceptor {
         }
         HttpServletRequest request = attributes.getRequest();
 
-        // 从 session / token / SecurityContext 中获取当前用户角色（示例用 session）
-        HttpSession session = request.getSession();
-        UserVO loginUser = (UserVO)session.getAttribute("USER_CACHE");
-        String userRole = loginUser.getUserRole();
-        ThrowUtils.throwIf(userRole == null || !userRole.equals(requiredRole), ErrorCode.NO_AUTH_ERROR);
+        UserVO currentUser = redisService.getCacheObject(Constants.USER_CACHE);
+        String currentUserRole = currentUser.getUserRole();
+        ThrowUtils.throwIf(currentUserRole == null || !currentUserRole.equals(requiredRole), ErrorCode.NO_AUTH_ERROR);
 
     }
 

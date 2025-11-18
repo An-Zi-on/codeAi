@@ -3,7 +3,9 @@ package com.aizihe.codeaai.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.server.HttpServerRequest;
+import cn.hutool.json.JSONUtil;
 import com.aizihe.codeaai.ThrowUtils.CryptoUtils;
+import com.aizihe.codeaai.ThrowUtils.RedisService;
 import com.aizihe.codeaai.ThrowUtils.ThrowUtils;
 import com.aizihe.codeaai.domain.VO.UserVO;
 import com.aizihe.codeaai.domain.entity.User;
@@ -23,6 +25,7 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.TimeUnit;
 
 import static com.aizihe.codeaai.domain.common.Constants.USER_CACHE;
 import static com.aizihe.codeaai.domain.common.Constants.USER_SALT;
@@ -35,6 +38,9 @@ import static com.aizihe.codeaai.domain.common.Constants.USER_SALT;
  */
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements UserService{
+
+    @Resource
+    RedisService redisService;
     @Resource
     UserMapper userMapper ;
 
@@ -79,8 +85,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
         String ciphertextU = CryptoUtils.hashPassword(userPassword, USER_SALT);
         ThrowUtils.throwIf(!ciphertextU.equals(userPasswordD),ErrorCode.PARAMS_ERROR,"密码错误");
         UserVO userVO = BeanUtil.copyProperties(user, UserVO.class);
-        HttpSession session = servletRequest.getSession();
-        session.setAttribute(USER_CACHE,userVO);
+        redisService.setCacheObject(USER_CACHE, userVO,5l, TimeUnit.MICROSECONDS);
         return true;
     }
 
@@ -109,9 +114,23 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
         String hashPassword = CryptoUtils.hashPassword(userPassword, USER_SALT);
         ThrowUtils.throwIf(userD.getUserPassword().equals(hashPassword),ErrorCode.PARAMS_ERROR,"密码重复");
         User user = BeanUtil.copyProperties(request, User.class);
+        user.setUserPassword(CryptoUtils.hashPassword(userPassword,USER_SALT));
         user.setEditTime(LocalDateTime.now());
         return user;
     }
+
+    @Override
+    public UserVO current() {
+        UserVO currentUser = redisService.getCacheObject(USER_CACHE);
+        ThrowUtils.throwIf(currentUser == null,ErrorCode.NO_AUTH_ERROR,"当前用户未登入");
+        Long id = currentUser.getId();
+        User user = this.getById(id);
+        ThrowUtils.throwIf(user == null,ErrorCode.NOT_FOUND_ERROR);
+        UserVO userVO = UserVO.fromEntity(user);
+        redisService.setCacheObject(USER_CACHE, userVO,5l, TimeUnit.MICROSECONDS);;
+        return userVO;
+    }
+
     /**
      * 校验字符串字段
      *

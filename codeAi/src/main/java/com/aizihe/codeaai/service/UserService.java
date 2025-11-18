@@ -1,5 +1,6 @@
 package com.aizihe.codeaai.service;
 
+import com.aizihe.codeaai.domain.VO.UserVO;
 import com.aizihe.codeaai.domain.entity.User;
 import com.aizihe.codeaai.domain.request.user.UserLoginRequest;
 import com.aizihe.codeaai.domain.request.user.UserRegisterRequest;
@@ -22,4 +23,6 @@ public interface UserService extends IService<User> {
     User checkUpdate(UserUpdateRequest request);
 
     User checkPssword(UserUpdatePwdRequest request);
+
+    UserVO current();
 }
