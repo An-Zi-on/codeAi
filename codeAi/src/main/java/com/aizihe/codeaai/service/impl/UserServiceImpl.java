@@ -42,21 +42,23 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
     public boolean userRegister(UserRegisterRequest request) {
         String userAccount = request.getUserAccount();
         //校验账号
-        validateField(userAccount,"账号",8,10);
-
+        validateField(userAccount,"账号",8,10,false);
+        long count = userMapper.selectCountByQuery(new QueryWrapper().eq(User::getUserAccount, userAccount));
+        ThrowUtils.throwIf(count >0,ErrorCode.PARAMS_ERROR,"账号已存在");
         //校验密码
         String userPassword = request.getUserPassword();
-        validateField(userPassword,"密码",8,10);
+        validateField(userPassword,"密码",8,10,false);
 
         //校验确认密码
         String checkPassword = request.getCheckPassword();
-        validateField(checkPassword,"确认密码",8,10);
+        validateField(checkPassword,"确认密码",8,10,false);
 
         //密码加密
         String ciphertextP = CryptoUtils.hashPassword(userPassword, USER_SALT);
         String ciphertextC = CryptoUtils.hashPassword(checkPassword, USER_SALT);
         ThrowUtils.throwIf(!ciphertextC.equals(ciphertextP),ErrorCode.PARAMS_ERROR,"两次密码输入不一致");
         User user = BeanUtil.copyProperties(request, User.class);
+        user.setUserPassword(ciphertextP);
         user.setUserName("无名");
         user.setUserRole(UserRole.USER.getValue());
         user.setEditTime(LocalDateTime.now());
@@ -68,9 +70,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
     @Override
     public boolean userLogin(UserLoginRequest request, HttpServletRequest servletRequest) {
         String userAccount = request.getUserAccount();
-        validateField(userAccount,"账号",8,10);
+        validateField(userAccount,"账号",8,10,false);
         String userPassword = request.getUserPassword();
-        validateField(userPassword,"密码",8,10);
+        validateField(userPassword,"密码",8,10,false);
         User user = userMapper.selectOneByQuery(new QueryWrapper().eq(User::getUserAccount, userAccount));
         ThrowUtils.throwIf(user== null,ErrorCode.NOT_FOUND_ERROR,"账号不存在");
         String userPasswordD = user.getUserPassword();
@@ -88,9 +90,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
         User userD = userMapper.selectOneById(id);
         ThrowUtils.throwIf(userD == null,ErrorCode.NOT_FOUND_ERROR);
         String userName = request.getUserName();
-        validateField(userName,"用户名",2,8);
+        validateField(userName,"用户名",2,8,false);
         String userProfile = request.getUserProfile();
-        validateField(userProfile,"个人简介",0,30);
+        validateField(userProfile,"个人简介",0,30,true);
         User user = BeanUtil.copyProperties(request, User.class);
         user.setEditTime(LocalDateTime.now());
         return user;
@@ -105,17 +107,37 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
         User userD = userMapper.selectOneById(id);
         ThrowUtils.throwIf(userD == null ,ErrorCode.NOT_FOUND_ERROR);
         String hashPassword = CryptoUtils.hashPassword(userPassword, USER_SALT);
-        ThrowUtils.throwIf(!userD.getUserPassword().equals(hashPassword),ErrorCode.PARAMS_ERROR,"密码重复");
+        ThrowUtils.throwIf(userD.getUserPassword().equals(hashPassword),ErrorCode.PARAMS_ERROR,"密码重复");
         User user = BeanUtil.copyProperties(request, User.class);
         user.setEditTime(LocalDateTime.now());
         return user;
     }
-
     /**
-     * 校验字段：非空、非空白、长度 8~10
+     * 校验字符串字段
+     *
+     * @param value        字段值
+     * @param fieldName    字段名（用于错误提示）
+     * @param minLength    最小长度（包含）
+     * @param maxLength    最大长度（包含）
+     * @param allowNull    是否允许为 null 或空白（true=允许，false=不允许）
      */
-    private void validateField(String value, String fieldName,int minLength,int maxLength) {
-        boolean invalid = StrUtil.isBlank(value) || value.length() < minLength || value.length() > maxLength;
-        ThrowUtils.throwIf(invalid, ErrorCode.PARAMS_ERROR, fieldName + "不能为空且长度需为"+minLength+"-"+maxLength+"位");
+    private void validateField(String value, String fieldName, int minLength, int maxLength, boolean allowNull) {
+        // 如果不允许为空，先校验非空非空白
+        if (!allowNull) {
+            if (StrUtil.isBlank(value)) {
+                ThrowUtils.throwIf(true, ErrorCode.PARAMS_ERROR, fieldName + "不能为空");
+            }
+        }
+
+        // 如果允许为空，且当前值为空，则跳过长度校验
+        if (allowNull && StrUtil.isBlank(value)) {
+            return;
+        }
+
+        // 执行长度校验（此时 value 一定非空）
+        if (value.length() < minLength || value.length() > maxLength) {
+            ThrowUtils.throwIf(true, ErrorCode.PARAMS_ERROR,
+                    String.format("%s长度需为%d-%d位", fieldName, minLength, maxLength));
+        }
     }
 }

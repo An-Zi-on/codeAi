@@ -82,7 +82,7 @@ public class UserController {
      * 根据主键更新用户。
      */
     @PutMapping("update/pwd")
-    public boolean update(@RequestBody UserUpdatePwdRequest request) {
+    public boolean updatePwd(@RequestBody UserUpdatePwdRequest request) {
         ThrowUtils.throwIf(request == null, ErrorCode.NOT_FOUND_ERROR);
         User user = userService.checkPssword(request);
         return userService.updateById(user);

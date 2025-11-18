@@ -81,13 +81,13 @@ public class User implements Serializable {
     /**
      * 创建时间
      */
-    @Column("createTime")
+    @Column(value = "createTime",onInsertValue = "now()")
     private LocalDateTime createTime;
 
     /**
      * 更新时间
      */
-    @Column("updateTime")
+    @Column(value = "updateTime",onInsertValue = "now()")
     private LocalDateTime updateTime;
 
     /**
