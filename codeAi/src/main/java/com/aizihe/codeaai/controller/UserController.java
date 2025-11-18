@@ -73,7 +73,7 @@ public class UserController {
      * @return {@code true} 更新成功，{@code false} 更新失败
      * 根据主键更新用户。
      */
-    @PutMapping("update")
+    @PutMapping("/update")
     public boolean update(@RequestBody UserUpdateRequest request) {
         ThrowUtils.throwIf(request == null, ErrorCode.NOT_FOUND_ERROR);
         User user = userService.checkUpdate(request);
@@ -86,7 +86,7 @@ public class UserController {
      * @return {@code true} 更新成功，{@code false} 更新失败
      * 根据主键更新用户。
      */
-    @PutMapping("update/pwd")
+    @PutMapping("/update/pwd")
     public boolean updatePwd(@RequestBody UserUpdatePwdRequest request) {
         ThrowUtils.throwIf(request == null, ErrorCode.NOT_FOUND_ERROR);
         User user = userService.checkPssword(request);
@@ -110,7 +110,7 @@ public class UserController {
      * @param
      * @return 用户详情
      */
-    @GetMapping("current")
+    @GetMapping("/current")
     public BaseResponse<UserVO> getInfo() {
         return ResultUtils.success(userService.current());
     }
