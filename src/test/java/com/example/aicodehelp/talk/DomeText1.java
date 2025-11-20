@@ -13,7 +13,11 @@ class AiCodeHelperServiceTest {
 
     @Test
     void chat() {
-        String result = aiCodeHelperService.chat("你好，我是哈吉蜂,喜欢跑刀阴人");
+        String result = aiCodeHelperService.chat("你好，我是哈吉蜂");
         System.out.println(result);
+        String result2 = aiCodeHelperService.chat("你好我是谁,我喜欢干嘛");
+        System.out.println(result2);
+
+
     }
 }
