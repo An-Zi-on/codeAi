@@ -1,0 +1,9 @@
+# AI
+langchain4j:
+  open-ai:
+    chat-model:
+      base-url: https://api.deepseek.com
+      api-key: sk-8cc5d9b131584cf1885a79229d7ff786
+      model-name: deepseek-chat
+      log-requests: true
+      log-responses: true

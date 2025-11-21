@@ -18,6 +18,7 @@ target/
 *.iws
 *.iml
 *.ipr
+application-stg.yaml
 
 ### NetBeans ###
 /nbproject/private/
