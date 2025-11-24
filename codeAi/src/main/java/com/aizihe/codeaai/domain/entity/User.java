@@ -33,7 +33,7 @@ public class User implements Serializable {
     /**
      * id
      */
-    @Id(keyType = KeyType.Generator)
+    @Id(keyType = KeyType.Auto)
     private Long id;
 
     /**

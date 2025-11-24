@@ -7,3 +7,6 @@ langchain4j:
       model-name: deepseek-chat
       log-requests: true
       log-responses: true
+      # 格式话输出
+        #
+      max-tokens: 8192
