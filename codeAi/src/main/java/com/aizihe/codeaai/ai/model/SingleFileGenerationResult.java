@@ -1,10 +1,13 @@
 package com.aizihe.codeaai.ai.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import dev.langchain4j.model.output.structured.Description;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.sql.Date;
+import java.sql.Time;
 import java.time.Instant;
 
 /**
@@ -30,5 +33,6 @@ public class SingleFileGenerationResult {
      * 时间戳
      */
     @Description("生成时间")
-    private Instant generatedAt;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private Date generatedAt;
 }

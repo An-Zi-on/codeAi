@@ -5,6 +5,8 @@ import com.aizihe.codeaai.ai.model.SingleFileGenerationResult;
 import dev.langchain4j.service.SystemMessage;
 
 public interface AiCodeGeneratorService {
+
+
     /**
      * 单文件生成
      * @param userMessage
