@@ -5,6 +5,7 @@ import com.aizihe.codeaai.ThrowUtils.ResultUtils;
 import com.aizihe.codeaai.ThrowUtils.ThrowUtils;
 import com.aizihe.codeaai.annotation.MustRole;
 import com.aizihe.codeaai.domain.VO.UserVO;
+import com.aizihe.codeaai.domain.common.DeleteRequest;
 import com.aizihe.codeaai.domain.entity.User;
 import com.aizihe.codeaai.domain.request.user.UserLoginRequest;
 import com.aizihe.codeaai.domain.request.user.UserRegisterRequest;
@@ -13,6 +14,7 @@ import com.aizihe.codeaai.domain.request.user.UserUpdateRequest;
 import com.aizihe.codeaai.exception.ErrorCode;
 import com.aizihe.codeaai.service.UserService;
 import com.mybatisflex.core.paginate.Page;
+import dev.langchain4j.agent.tool.P;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
@@ -56,13 +58,15 @@ public class UserController {
     /**
      * 根据主键删除用户。
      *
-     * @param id 主键
+     * @param request 通用请求体
      * @return {@code true} 删除成功，{@code false} 删除失败
      * 根据主键更新用户。
      */
-    @DeleteMapping("remove/{id}")
+    @PostMapping("remove")
     @MustRole(needRole = "admin")
-    public BaseResponse<Boolean> remove(@PathVariable Long id) {
+    public BaseResponse<Boolean> remove(@RequestBody DeleteRequest request) {
+        Long id = request.getId();
+        ThrowUtils.throwIf(id == null,ErrorCode.NOT_FOUND_ERROR,"请求参数为空");
         return ResultUtils.success(userService.removeById(id));
     }
 
@@ -100,6 +104,7 @@ public class UserController {
      * 仅管理员使用
      */
     @GetMapping("list")
+    @MustRole(needRole = "admin")
     public BaseResponse<List<UserVO>> list() {
         List<User> users = userService.list();
         if (users == null || users.isEmpty()) {
