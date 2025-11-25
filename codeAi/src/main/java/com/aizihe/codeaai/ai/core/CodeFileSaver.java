@@ -10,6 +10,9 @@ import com.aizihe.codeaai.ai.model.enums.CodeGenTypeEnum;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 
+/**
+ *  代码保存文件工具类
+ */
 public class CodeFileSaver {
 
     // 保存在当前项目路径下   如: C:\Users\AnProject\private\codeAi

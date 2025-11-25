@@ -1,13 +1,18 @@
-# AI
 langchain4j:
   open-ai:
+    streaming-chat-model:
+      base-url: https://api.deepseek.com
+      api-key: sk-8cc5d9b131584cf1885a79229d7ff786
+      model-name: deepseek-chat
+      max-tokens: 8192
+      log-requests: true
+      log-responses: true
+    en-ai:
+    # 非流式聊天模型（用于 .chatModel()）
     chat-model:
       base-url: https://api.deepseek.com
       api-key: sk-8cc5d9b131584cf1885a79229d7ff786
       model-name: deepseek-chat
+      max-tokens: 8192
       log-requests: true
       log-responses: true
-      # 格式话输出
-        #限制最大的输出token
-      max-tokens: 8192
-      response-format: json_object

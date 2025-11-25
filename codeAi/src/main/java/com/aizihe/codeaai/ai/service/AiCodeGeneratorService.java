@@ -3,6 +3,7 @@ package com.aizihe.codeaai.ai.service;
 import com.aizihe.codeaai.ai.model.MultiFileWebsiteResult;
 import com.aizihe.codeaai.ai.model.SingleFileGenerationResult;
 import dev.langchain4j.service.SystemMessage;
+import reactor.core.publisher.Flux;
 
 public interface AiCodeGeneratorService {
 
@@ -13,7 +14,7 @@ public interface AiCodeGeneratorService {
      * @return
      */
     @SystemMessage(fromResource = "/system-prompt/single-file-prompt.txt")
-    SingleFileGenerationResult generateSignalCode(String userMessage);
+    Flux<String> generateSignalCode(String userMessage);
 
     /**
      * 多文件生成
@@ -21,5 +22,5 @@ public interface AiCodeGeneratorService {
      * @return
      */
     @SystemMessage(fromResource = "system-prompt/multi-file-prompt")
-    MultiFileWebsiteResult generateMultiCode(String userMessage);
+    Flux<String> generateMultiCode(String userMessage);
 }
