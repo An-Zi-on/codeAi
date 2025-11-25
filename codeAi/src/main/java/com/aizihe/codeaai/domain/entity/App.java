@@ -1,6 +1,5 @@
 package com.aizihe.codeaai.domain.entity;
 
-import com.aizihe.codeaai.domain.VO.AppVO;
 import com.mybatisflex.annotation.Column;
 import com.mybatisflex.annotation.Id;
 import com.mybatisflex.annotation.KeyType;

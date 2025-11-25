@@ -5,16 +5,19 @@ import com.aizihe.codeaai.ThrowUtils.ResultUtils;
 import com.aizihe.codeaai.ThrowUtils.ThrowUtils;
 import com.aizihe.codeaai.annotation.MustRole;
 import com.aizihe.codeaai.domain.VO.UserVO;
+import com.aizihe.codeaai.domain.entity.User;
 import com.aizihe.codeaai.domain.request.user.UserLoginRequest;
 import com.aizihe.codeaai.domain.request.user.UserRegisterRequest;
 import com.aizihe.codeaai.domain.request.user.UserUpdatePwdRequest;
 import com.aizihe.codeaai.domain.request.user.UserUpdateRequest;
-import com.aizihe.codeaai.enums.UserRole;
 import com.aizihe.codeaai.exception.ErrorCode;
+import com.aizihe.codeaai.service.UserService;
 import com.mybatisflex.core.paginate.Page;
 import jakarta.annotation.Resource;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,10 +25,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import com.aizihe.codeaai.domain.entity.User;
-import com.aizihe.codeaai.service.UserService;
 import org.springframework.web.bind.annotation.RestController;
-import java.util.List;
 
 import static com.aizihe.codeaai.domain.common.Constants.USER_CACHE;
 
@@ -49,8 +49,8 @@ public class UserController {
      */
     @PostMapping("save")
     @MustRole(needRole = "admin")
-    public boolean save(@RequestBody User user) {
-        return userService.save(user);
+    public BaseResponse<Boolean> save(@RequestBody User user) {
+        return  ResultUtils.success(userService.save(user));
     }
 
     /**
@@ -62,8 +62,8 @@ public class UserController {
      */
     @DeleteMapping("remove/{id}")
     @MustRole(needRole = "admin")
-    public boolean remove(@PathVariable Long id) {
-        return userService.removeById(id);
+    public BaseResponse<Boolean> remove(@PathVariable Long id) {
+        return ResultUtils.success(userService.removeById(id));
     }
 
     /**
@@ -74,10 +74,10 @@ public class UserController {
      * 根据主键更新用户。
      */
     @PutMapping("/update")
-    public boolean update(@RequestBody UserUpdateRequest request) {
+    public BaseResponse<Boolean> update(@RequestBody UserUpdateRequest request) {
         ThrowUtils.throwIf(request == null, ErrorCode.NOT_FOUND_ERROR);
         User user = userService.checkUpdate(request);
-        return userService.updateById(user);
+        return ResultUtils.success(userService.updateById(user));
     }
     /**
      * 根据主键更新用户密码。
@@ -87,10 +87,10 @@ public class UserController {
      * 根据主键更新用户。
      */
     @PutMapping("/update/pwd")
-    public boolean updatePwd(@RequestBody UserUpdatePwdRequest request) {
+    public BaseResponse<Boolean> updatePwd(@RequestBody UserUpdatePwdRequest request) {
         ThrowUtils.throwIf(request == null, ErrorCode.NOT_FOUND_ERROR);
         User user = userService.checkPssword(request);
-        return userService.updateById(user);
+        return ResultUtils.success(userService.updateById(user));
     }
 
     /**
@@ -100,8 +100,16 @@ public class UserController {
      * 仅管理员使用
      */
     @GetMapping("list")
-    public List<User> list() {
-        return userService.list();
+    public BaseResponse<List<UserVO>> list() {
+        List<User> users = userService.list();
+        if (users == null || users.isEmpty()) {
+            return ResultUtils.success(Collections.emptyList());
+        }
+        return ResultUtils.success(
+                users.stream()
+                .map(UserVO::fromEntity)
+                .collect(Collectors.toList()));
+
     }
 
     /**
@@ -122,8 +130,9 @@ public class UserController {
      * @return 分页对象
      */
     @GetMapping("page")
-    public Page<User> page(Page<User> page) {
-        return userService.page(page);
+    public BaseResponse<Page<UserVO>> page(Page<User> page) {
+        Page<User> entityPage = userService.page(page);
+        return ResultUtils.success(convertPage(entityPage));
     }
 
     /**
@@ -153,5 +162,24 @@ public class UserController {
     public BaseResponse<String> loginOut(HttpServletRequest request){
        request.removeAttribute(USER_CACHE);
        return ResultUtils.success("OK");
+    }
+
+    private Page<UserVO> convertPage(Page<User> source) {
+        if (source == null) {
+            return null;
+        }
+        Page<UserVO> target = new Page<>();
+        target.setPageNumber(source.getPageNumber());
+        target.setPageSize(source.getPageSize());
+        target.setTotalRow(source.getTotalRow());
+        target.setTotalPage(source.getTotalPage());
+
+        List<UserVO> records = source.getRecords() == null
+                ? Collections.emptyList()
+                : source.getRecords().stream()
+                .map(UserVO::fromEntity)
+                .collect(Collectors.toList());
+        target.setRecords(records);
+        return target;
     }
 }
