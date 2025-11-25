@@ -3,6 +3,7 @@ package com.aizihe.codeaai.service.impl;
 import cn.hutool.core.util.StrUtil;
 import com.aizihe.codeaai.ThrowUtils.ThrowUtils;
 import com.aizihe.codeaai.domain.VO.UserVO;
+import com.aizihe.codeaai.domain.common.DeleteRequest;
 import com.aizihe.codeaai.domain.entity.App;
 import com.aizihe.codeaai.domain.request.app.AppAdminPageRequest;
 import com.aizihe.codeaai.domain.request.app.AppAdminUpdateRequest;
@@ -81,7 +82,8 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     }
 
     @Override
-    public Boolean deleteMyApp(Long appId) {
+    public Boolean deleteMyApp(DeleteRequest request) {
+        Long appId = request.getId();
         Long safeAppId = requireNonNull(appId, ErrorCode.PARAMS_ERROR);
         UserVO currentUser = userService.current();
         App dbApp = requireNonNull(getById(safeAppId), ErrorCode.NOT_FOUND_ERROR);
@@ -138,7 +140,8 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     }
 
     @Override
-    public Boolean adminDeleteApp(Long appId) {
+    public Boolean adminDeleteApp(DeleteRequest request) {
+        Long appId = request.getId();
         ThrowUtils.throwIf(appId == null, ErrorCode.PARAMS_ERROR);
         boolean result = this.removeById(appId);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "删除应用失败");

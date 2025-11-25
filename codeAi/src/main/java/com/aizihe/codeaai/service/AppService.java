@@ -1,5 +1,6 @@
 package com.aizihe.codeaai.service;
 
+import com.aizihe.codeaai.domain.common.DeleteRequest;
 import com.aizihe.codeaai.domain.entity.App;
 import com.aizihe.codeaai.domain.request.app.AppAdminPageRequest;
 import com.aizihe.codeaai.domain.request.app.AppAdminUpdateRequest;
@@ -31,7 +32,7 @@ public interface AppService extends IService<App> {
     /**
      * 用户删除自己的应用
      */
-    Boolean deleteMyApp(Long appId);
+    Boolean deleteMyApp(DeleteRequest request);
 
     /**
      * 用户查看自己应用详情
@@ -51,7 +52,7 @@ public interface AppService extends IService<App> {
     /**
      * 管理员删除任意应用
      */
-    Boolean adminDeleteApp(Long appId);
+    Boolean adminDeleteApp(DeleteRequest request);
 
     /**
      * 管理员更新任意应用名称 / 封面 / 优先级

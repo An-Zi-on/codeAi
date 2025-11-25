@@ -4,6 +4,7 @@ import com.aizihe.codeaai.ThrowUtils.BaseResponse;
 import com.aizihe.codeaai.ThrowUtils.ResultUtils;
 import com.aizihe.codeaai.annotation.MustRole;
 import com.aizihe.codeaai.domain.VO.AppVO;
+import com.aizihe.codeaai.domain.common.DeleteRequest;
 import com.aizihe.codeaai.domain.entity.App;
 import com.aizihe.codeaai.domain.request.app.AppAdminPageRequest;
 import com.aizihe.codeaai.domain.request.app.AppAdminUpdateRequest;
@@ -60,9 +61,9 @@ public class AppController {
     /**
      * 用户删除自己的应用
      */
-    @DeleteMapping("/my/{id}")
-    public BaseResponse<Boolean> deleteMyApp(@PathVariable Long id) {
-        return ResultUtils.success(appService.deleteMyApp(id));
+    @PostMapping("/my/delete")
+    public BaseResponse<Boolean> deleteMyApp(@RequestBody DeleteRequest request) {
+        return ResultUtils.success(appService.deleteMyApp(request));
     }
 
     /**
@@ -94,10 +95,10 @@ public class AppController {
     /**
      * 管理员删除任意应用
      */
-    @DeleteMapping("/admin/{id}")
+    @PostMapping("/admin/delete")
     @MustRole(needRole = "admin")
-    public BaseResponse<Boolean> adminDelete(@PathVariable Long id) {
-        return ResultUtils.success(appService.adminDeleteApp(id));
+    public BaseResponse<Boolean> adminDelete(@RequestBody DeleteRequest request) {
+        return ResultUtils.success(appService.adminDeleteApp(request));
     }
 
     /**
