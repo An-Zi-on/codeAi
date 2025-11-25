@@ -10,6 +10,7 @@ import com.aizihe.codeaai.domain.request.app.AppCreateRequest;
 import com.aizihe.codeaai.domain.request.app.AppFeaturedPageRequest;
 import com.aizihe.codeaai.domain.request.app.AppMyPageRequest;
 import com.aizihe.codeaai.domain.request.app.AppUpdateMyRequest;
+import com.aizihe.codeaai.enums.UserRole;
 import com.aizihe.codeaai.exception.ErrorCode;
 import com.aizihe.codeaai.mapper.AppMapper;
 import com.aizihe.codeaai.service.AppService;
@@ -84,7 +85,9 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         Long safeAppId = requireNonNull(appId, ErrorCode.PARAMS_ERROR);
         UserVO currentUser = userService.current();
         App dbApp = requireNonNull(getById(safeAppId), ErrorCode.NOT_FOUND_ERROR);
-        ThrowUtils.throwIf(!dbApp.getUserId().equals(currentUser.getId()), ErrorCode.NO_AUTH_ERROR);
+        //仅本人和管理员可删除
+        ThrowUtils.throwIf(!dbApp.getUserId().equals(currentUser.getId()) && !UserRole.ADMIN.getValue().equals(currentUser.getUserRole())
+                , ErrorCode.NO_AUTH_ERROR);
         boolean result = this.removeById(safeAppId);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "删除应用失败");
         return true;
@@ -176,6 +179,7 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         int current = normalizeCurrent(safeRequest.getCurrent());
         int size = (safeRequest.getSize() == null || safeRequest.getSize() <= 0) ? 10 : safeRequest.getSize();
         Page<App> page = Page.of(current, size);
+        // 动态拼接参数
         QueryWrapper queryWrapper = QueryWrapper.create();
         if (safeRequest.getId() != null) {
             queryWrapper.eq(App::getId, safeRequest.getId());
@@ -214,6 +218,13 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         return requireNonNull(getById(safeId), ErrorCode.NOT_FOUND_ERROR);
     }
 
+    /**
+     *
+     * @param value
+     * @param fieldName
+     * @param minLength
+     * @param maxLength
+     */
     private void validateRequiredString(String value, String fieldName, int minLength, int maxLength) {
         ThrowUtils.throwIf(StrUtil.isBlank(value), ErrorCode.PARAMS_ERROR, fieldName + "不能为空");
         String trimmed = value.trim();
@@ -235,6 +246,13 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         return StrUtil.isBlank(value) ? null : value.trim();
     }
 
+    /**
+     * 请求参数校验
+     * @param value 参数值
+     * @param errorCode 错误码
+     * @return
+     * @param <T>
+     */
     private <T> T requireNonNull(T value, ErrorCode errorCode) {
         if (value == null) {
             ThrowUtils.throwIf(true, errorCode);
