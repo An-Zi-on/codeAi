@@ -1,7 +1,9 @@
 package com.aizihe.codeaai.service;
 
+import com.aizihe.codeaai.domain.VO.UserVO;
 import com.aizihe.codeaai.domain.common.DeleteRequest;
 import com.aizihe.codeaai.domain.entity.App;
+import com.aizihe.codeaai.domain.entity.User;
 import com.aizihe.codeaai.domain.request.app.AppAdminPageRequest;
 import com.aizihe.codeaai.domain.request.app.AppAdminUpdateRequest;
 import com.aizihe.codeaai.domain.request.app.AppCreateRequest;
@@ -10,6 +12,7 @@ import com.aizihe.codeaai.domain.request.app.AppMyPageRequest;
 import com.aizihe.codeaai.domain.request.app.AppUpdateMyRequest;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.service.IService;
+import reactor.core.publisher.Flux;
 
 /**
  * 应用 服务层。
@@ -18,6 +21,7 @@ import com.mybatisflex.core.service.IService;
  * @since yyyy-MM-dd
  */
 public interface AppService extends IService<App> {
+    Flux<String> chatToGenCode(Long appId,String message, UserVO loginUser);
 
     /**
      * 用户创建应用

@@ -85,7 +85,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
         String ciphertextU = CryptoUtils.hashPassword(userPassword, USER_SALT);
         ThrowUtils.throwIf(!ciphertextU.equals(userPasswordD),ErrorCode.PARAMS_ERROR,"密码错误");
         UserVO userVO = BeanUtil.copyProperties(user, UserVO.class);
-        redisService.setCacheObject(USER_CACHE, userVO,5l, TimeUnit.MICROSECONDS);
+        redisService.setCacheObject(USER_CACHE, userVO, 5L, TimeUnit.MINUTES);
         return true;
     }
 

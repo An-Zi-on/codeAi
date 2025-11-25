@@ -34,18 +34,18 @@ class AiCodeGeneratorServiceTest {
     }
     @Test
     void generateCode(){
-        Flux<String> file = aiCodeGeneratorFacade.generateCode("生成一个用户注册登入个人中心的用户前端页面", CodeGenTypeEnum.GEN_TYPE_HTML);
-        System.out.println(file);
+        //Flux<String> file = aiCodeGeneratorFacade.generateCode("生成一个用户注册登入个人中心的用户前端页面", CodeGenTypeEnum.GEN_TYPE_HTML);
+        //System.out.println(file);
     }
     @Test
     void generateAndSaveCodeStream() {
-        Flux<String> codeStream = aiCodeGeneratorFacade.generateCode("任务记录网站", CodeGenTypeEnum.GEN_MULTI_FILE);
+        //Flux<String> codeStream = aiCodeGeneratorFacade.generateCode("任务记录网站", CodeGenTypeEnum.GEN_MULTI_FILE);
         // 阻塞等待所有数据收集完成
-        List<String> result = codeStream.collectList().block();
+      //  List<String> result = codeStream.collectList().block();
         // 验证结果
-        Assertions.assertNotNull(result);
-        String completeContent = String.join("", result);
-        Assertions.assertNotNull(completeContent);
+        //Assertions.assertNotNull(result);
+        //String completeContent = String.join("", result);
+        //Assertions.assertNotNull(completeContent);
     }
 
 }

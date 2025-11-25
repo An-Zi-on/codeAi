@@ -2,6 +2,8 @@ package com.aizihe.codeaai.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.aizihe.codeaai.ThrowUtils.ThrowUtils;
+import com.aizihe.codeaai.ai.core.AiCodeGeneratorFacade;
+import com.aizihe.codeaai.ai.model.enums.CodeGenTypeEnum;
 import com.aizihe.codeaai.domain.VO.UserVO;
 import com.aizihe.codeaai.domain.common.DeleteRequest;
 import com.aizihe.codeaai.domain.entity.App;
@@ -21,6 +23,7 @@ import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 import java.time.LocalDateTime;
 
@@ -32,11 +35,28 @@ import java.time.LocalDateTime;
  */
 @Service
 public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppService {
-
     private static final int MAX_PAGE_SIZE = 20;
 
     @Resource
     private UserService userService;
+    @Resource
+    AiCodeGeneratorFacade aiCodeGeneratorFacade;
+    @Override
+    public Flux<String> chatToGenCode(Long appId, String message, UserVO loginUser) {
+        ThrowUtils.throwIf(!StrUtil.isNotBlank(message),ErrorCode.NOT_FOUND_ERROR,"描述不能为空");
+        ThrowUtils.throwIf(appId == null||appId<0,ErrorCode.PARAMS_ERROR);
+        App appDo = this.getById(appId);
+        ThrowUtils.throwIf(appDo == null,ErrorCode.NOT_FOUND_ERROR);
+        //仅本人和管理员才能在自己项目进行创建
+        ThrowUtils.throwIf(!appDo.getUserId().equals(loginUser.getId()) && loginUser.getUserRole().equals(UserRole.ADMIN.getValue()),ErrorCode.NO_AUTH_ERROR,"无权限生成代码");
+        //获取生成的代码类型
+        String codeGenType = appDo.getCodeGenType();
+        ThrowUtils.throwIf(!StrUtil.isNotBlank(codeGenType),ErrorCode.NOT_FOUND_ERROR,"生成代码的类型不存在");
+        //获取对应生成类型
+        CodeGenTypeEnum codeGenTypeEnum = CodeGenTypeEnum.getByValue(codeGenType);
+        ThrowUtils.throwIf(codeGenTypeEnum == null,ErrorCode.PARAMS_ERROR,"生成代码的类型不存在");
+        return aiCodeGeneratorFacade.generateCode(message, codeGenTypeEnum, appId);
+    }
 
     @Override
     public Long createApp(AppCreateRequest request) {

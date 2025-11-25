@@ -1,5 +1,6 @@
 package com.aizihe.codeaai.ThrowUtils;
 
+import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.*;
 import org.springframework.stereotype.Component;
@@ -14,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class RedisService
 {
-    @Autowired
+    @Resource
     public RedisTemplate redisTemplate;
 
     /**

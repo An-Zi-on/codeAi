@@ -1,9 +1,12 @@
 package com.aizihe.codeaai.controller;
 
+import cn.hutool.core.util.StrUtil;
 import com.aizihe.codeaai.ThrowUtils.BaseResponse;
 import com.aizihe.codeaai.ThrowUtils.ResultUtils;
+import com.aizihe.codeaai.ThrowUtils.ThrowUtils;
 import com.aizihe.codeaai.annotation.MustRole;
 import com.aizihe.codeaai.domain.VO.AppVO;
+import com.aizihe.codeaai.domain.VO.UserVO;
 import com.aizihe.codeaai.domain.common.DeleteRequest;
 import com.aizihe.codeaai.domain.entity.App;
 import com.aizihe.codeaai.domain.request.app.AppAdminPageRequest;
@@ -12,20 +15,21 @@ import com.aizihe.codeaai.domain.request.app.AppCreateRequest;
 import com.aizihe.codeaai.domain.request.app.AppFeaturedPageRequest;
 import com.aizihe.codeaai.domain.request.app.AppMyPageRequest;
 import com.aizihe.codeaai.domain.request.app.AppUpdateMyRequest;
+import com.aizihe.codeaai.exception.ErrorCode;
 import com.aizihe.codeaai.service.AppService;
+import com.aizihe.codeaai.service.UserService;
 import com.mybatisflex.core.paginate.Page;
 import jakarta.annotation.Resource;
+
+import java.lang.annotation.Target;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 
 /**
  * 应用 控制层。
@@ -39,8 +43,22 @@ public class AppController {
 
     @Resource
     private AppService appService;
-
+    @Resource
+    private UserService userService;
     // ========== 用户侧 ==========
+    /**
+     * 用户生成代码
+     */
+    @GetMapping(value="/chat/gen/code",produces= MediaType.TEXT_EVENT_STREAM_VALUE)
+    public BaseResponse<Flux<String>> generateCode(@RequestParam Long appId,
+                                           @RequestParam String message
+                                          ) {
+        ThrowUtils.throwIf(appId == null ||appId<0, ErrorCode.PARAMS_ERROR,"请求参数错误");
+        ThrowUtils.throwIf(!StrUtil.isNotBlank(message),ErrorCode.PARAMS_ERROR,"信息为空");
+        UserVO current = userService.current();
+       return ResultUtils.success(appService.chatToGenCode(appId, message, current));
+    }
+
     /**
      * 用户创建应用
      */
