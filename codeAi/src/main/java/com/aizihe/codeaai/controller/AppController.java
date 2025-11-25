@@ -1,0 +1,125 @@
+package com.aizihe.codeaai.controller;
+
+import com.aizihe.codeaai.ThrowUtils.BaseResponse;
+import com.aizihe.codeaai.ThrowUtils.ResultUtils;
+import com.aizihe.codeaai.annotation.MustRole;
+import com.aizihe.codeaai.domain.entity.App;
+import com.aizihe.codeaai.domain.request.app.AppAdminPageRequest;
+import com.aizihe.codeaai.domain.request.app.AppAdminUpdateRequest;
+import com.aizihe.codeaai.domain.request.app.AppCreateRequest;
+import com.aizihe.codeaai.domain.request.app.AppFeaturedPageRequest;
+import com.aizihe.codeaai.domain.request.app.AppMyPageRequest;
+import com.aizihe.codeaai.domain.request.app.AppUpdateMyRequest;
+import com.aizihe.codeaai.service.AppService;
+import com.mybatisflex.core.paginate.Page;
+import jakarta.annotation.Resource;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * 应用 控制层。
+ *
+ * @author zhuge
+ * @since yyyy-MM-dd
+ */
+@RestController
+@RequestMapping("/app")
+public class AppController {
+
+    @Resource
+    private AppService appService;
+
+    // ========== 用户侧 ==========
+
+    /**
+     * 用户创建应用
+     */
+    @PostMapping("/my/create")
+    public BaseResponse<Long> createApp(@RequestBody AppCreateRequest request) {
+        return ResultUtils.success(appService.createApp(request));
+    }
+
+    /**
+     * 用户更新自己的应用
+     */
+    @PutMapping("/my/update")
+    public BaseResponse<Boolean> updateMyApp(@RequestBody AppUpdateMyRequest request) {
+        return ResultUtils.success(appService.updateMyApp(request));
+    }
+
+    /**
+     * 用户删除自己的应用
+     */
+    @DeleteMapping("/my/{id}")
+    public BaseResponse<Boolean> deleteMyApp(@PathVariable Long id) {
+        return ResultUtils.success(appService.deleteMyApp(id));
+    }
+
+    /**
+     * 用户查询自己的应用详情
+     */
+    @GetMapping("/my/{id}")
+    public BaseResponse<App> getMyApp(@PathVariable Long id) {
+        return ResultUtils.success(appService.getMyAppDetail(id));
+    }
+
+    /**
+     * 用户分页查询自己的应用（最多 20 条）
+     */
+    @PostMapping("/my/page")
+    public BaseResponse<Page<App>> pageMyApps(@RequestBody AppMyPageRequest request) {
+        return ResultUtils.success(appService.pageMyApps(request));
+    }
+
+    /**
+     * 用户分页查询精选应用（最多 20 条）
+     */
+    @PostMapping("/featured/page")
+    public BaseResponse<Page<App>> pageFeaturedApps(@RequestBody AppFeaturedPageRequest request) {
+        return ResultUtils.success(appService.pageFeaturedApps(request));
+    }
+
+    // ========== 管理员 ==========
+
+    /**
+     * 管理员删除任意应用
+     */
+    @DeleteMapping("/admin/{id}")
+    @MustRole(needRole = "admin")
+    public BaseResponse<Boolean> adminDelete(@PathVariable Long id) {
+        return ResultUtils.success(appService.adminDeleteApp(id));
+    }
+
+    /**
+     * 管理员更新应用
+     */
+    @PutMapping("/admin/update")
+    @MustRole(needRole = "admin")
+    public BaseResponse<Boolean> adminUpdate(@RequestBody AppAdminUpdateRequest request) {
+        return ResultUtils.success(appService.adminUpdateApp(request));
+    }
+
+    /**
+     * 管理员分页查询应用（字段任意组合，数量不限）
+     */
+    @PostMapping("/admin/page")
+    @MustRole(needRole = "admin")
+    public BaseResponse<Page<App>> adminPage(@RequestBody AppAdminPageRequest request) {
+        return ResultUtils.success(appService.adminPage(request));
+    }
+
+    /**
+     * 管理员查看应用详情
+     */
+    @GetMapping("/admin/{id}")
+    @MustRole(needRole = "admin")
+    public BaseResponse<App> adminGetDetail(@PathVariable Long id) {
+        return ResultUtils.success(appService.adminGetDetail(id));
+    }
+}

@@ -2,7 +2,7 @@ langchain4j:
   open-ai:
     streaming-chat-model:
       base-url: https://api.deepseek.com
-      api-key: sk-8cc5d9b131584cf1885a79229d7ff786
+      api-key: sk-4722e704aba940da9d1d839c980021f8
       model-name: deepseek-chat
       max-tokens: 8192
       log-requests: true
@@ -11,7 +11,7 @@ langchain4j:
     # 非流式聊天模型（用于 .chatModel()）
     chat-model:
       base-url: https://api.deepseek.com
-      api-key: sk-8cc5d9b131584cf1885a79229d7ff786
+      api-key: sk-4722e704aba940da9d1d839c980021f8
       model-name: deepseek-chat
       max-tokens: 8192
       log-requests: true

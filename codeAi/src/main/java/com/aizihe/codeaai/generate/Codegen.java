@@ -6,7 +6,7 @@ import com.mybatisflex.codegen.config.GlobalConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 public class Codegen {
-    public static final String[] TABLE_NAME = {"user"};
+    public static final String[] TABLE_NAME = {"app"};
 
     public static void main(String[] args) {
         //配置数据源

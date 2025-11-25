@@ -18,7 +18,7 @@ target/
 *.iws
 *.iml
 *.ipr
-application-stg.yaml
+*.yml
 tmp
 ### NetBeans ###
 /nbproject/private/
