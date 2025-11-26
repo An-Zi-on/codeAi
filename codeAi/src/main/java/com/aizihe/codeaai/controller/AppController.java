@@ -21,13 +21,12 @@ import com.aizihe.codeaai.service.UserService;
 import com.mybatisflex.core.paginate.Page;
 import jakarta.annotation.Resource;
 
-import java.lang.annotation.Target;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.MediaType;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
@@ -50,13 +49,13 @@ public class AppController {
      * 用户生成代码
      */
     @GetMapping(value="/chat/gen/code",produces= MediaType.TEXT_EVENT_STREAM_VALUE)
-    public BaseResponse<Flux<String>> generateCode(@RequestParam Long appId,
-                                           @RequestParam String message
+    public Flux<ServerSentEvent<String>> generateCode(@RequestParam Long appId,
+                                                      @RequestParam String message
                                           ) {
         ThrowUtils.throwIf(appId == null ||appId<0, ErrorCode.PARAMS_ERROR,"请求参数错误");
         ThrowUtils.throwIf(!StrUtil.isNotBlank(message),ErrorCode.PARAMS_ERROR,"信息为空");
         UserVO current = userService.current();
-       return ResultUtils.success(appService.chatToGenCode(appId, message, current));
+       return appService.chatToGenCode(appId, message, current);
     }
 
     /**

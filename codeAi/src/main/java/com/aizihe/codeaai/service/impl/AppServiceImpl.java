@@ -1,6 +1,7 @@
 package com.aizihe.codeaai.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.aizihe.codeaai.ThrowUtils.ThrowUtils;
 import com.aizihe.codeaai.ai.core.AiCodeGeneratorFacade;
 import com.aizihe.codeaai.ai.model.enums.CodeGenTypeEnum;
@@ -22,10 +23,13 @@ import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import jakarta.annotation.Resource;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
  * 应用 服务层实现。
@@ -42,7 +46,7 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     @Resource
     AiCodeGeneratorFacade aiCodeGeneratorFacade;
     @Override
-    public Flux<String> chatToGenCode(Long appId, String message, UserVO loginUser) {
+    public Flux<ServerSentEvent<String>> chatToGenCode(Long appId, String message, UserVO loginUser) {
         ThrowUtils.throwIf(!StrUtil.isNotBlank(message),ErrorCode.NOT_FOUND_ERROR,"描述不能为空");
         ThrowUtils.throwIf(appId == null||appId<0,ErrorCode.PARAMS_ERROR);
         App appDo = this.getById(appId);
@@ -55,22 +59,30 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         //获取对应生成类型
         CodeGenTypeEnum codeGenTypeEnum = CodeGenTypeEnum.getByValue(codeGenType);
         ThrowUtils.throwIf(codeGenTypeEnum == null,ErrorCode.PARAMS_ERROR,"生成代码的类型不存在");
-        return aiCodeGeneratorFacade.generateCode(message, codeGenTypeEnum, appId);
+        Flux<String> stringFlux = aiCodeGeneratorFacade.generateCode(message, codeGenTypeEnum, appId);
+        return  stringFlux.map(chunk ->{
+            Map<String,String> wrapper = Map.of("d",chunk);
+            String jsonData = JSONUtil.toJsonStr(wrapper);
+            return ServerSentEvent.<String>builder().data(jsonData).build();
+        })
+            .concatWith(Mono.just(
+                        ServerSentEvent.<String>builder()
+                                .event("done").data("").build()
+            ));
+
     }
 
     @Override
     public Long createApp(AppCreateRequest request) {
         AppCreateRequest safeRequest = requireNonNull(request, ErrorCode.PARAMS_ERROR);
         UserVO currentUser = userService.current();
-        validateRequiredString(safeRequest.getAppName(), "应用名称", 2, 30);
+        //先提取初始化提示词的前12位作为应用的初始名称
         validateRequiredString(safeRequest.getInitPrompt(), "初始化提示词", 10, 5000);
         LocalDateTime now = LocalDateTime.now();
         App app = App.builder()
-                .appName(safeRequest.getAppName().trim())
-                .cover(optionalTrim(safeRequest.getCover()))
+                .appName(safeRequest.getInitPrompt().trim().substring(0,12))
                 .initPrompt(safeRequest.getInitPrompt().trim())
                 .codeGenType(optionalTrim(safeRequest.getCodeGenType()))
-                .deployKey(optionalTrim(safeRequest.getDeployKey()))
                 .priority(0)
                 .userId(currentUser.getId())
                 .editTime(now)
@@ -89,10 +101,12 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         validateRequiredString(safeRequest.getAppName(), "应用名称", 2, 30);
         UserVO currentUser = userService.current();
         App dbApp = requireNonNull(getById(appId), ErrorCode.NOT_FOUND_ERROR);
+        //仅当前用户修改自己用户
         ThrowUtils.throwIf(!dbApp.getUserId().equals(currentUser.getId()), ErrorCode.NO_AUTH_ERROR);
         App app = new App();
         app.setId(dbApp.getId());
         app.setAppName(safeRequest.getAppName().trim());
+        app.setCover(safeRequest.getCover());
         LocalDateTime now = LocalDateTime.now();
         app.setEditTime(now);
         app.setUpdateTime(now);

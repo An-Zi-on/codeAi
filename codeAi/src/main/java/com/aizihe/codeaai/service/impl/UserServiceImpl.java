@@ -127,7 +127,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
         User user = this.getById(id);
         ThrowUtils.throwIf(user == null,ErrorCode.NOT_FOUND_ERROR);
         UserVO userVO = UserVO.fromEntity(user);
-        redisService.setCacheObject(USER_CACHE, userVO,5l, TimeUnit.MICROSECONDS);;
+        redisService.setCacheObject(USER_CACHE, userVO, 5L, TimeUnit.MINUTES);;
         return userVO;
     }
 

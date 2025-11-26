@@ -17,5 +17,7 @@ public class AppUpdateMyRequest {
      * 新的应用名称
      */
     private String appName;
+
+    private  String cover;
 }
 

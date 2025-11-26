@@ -3,7 +3,6 @@ package com.aizihe.codeaai.service;
 import com.aizihe.codeaai.domain.VO.UserVO;
 import com.aizihe.codeaai.domain.common.DeleteRequest;
 import com.aizihe.codeaai.domain.entity.App;
-import com.aizihe.codeaai.domain.entity.User;
 import com.aizihe.codeaai.domain.request.app.AppAdminPageRequest;
 import com.aizihe.codeaai.domain.request.app.AppAdminUpdateRequest;
 import com.aizihe.codeaai.domain.request.app.AppCreateRequest;
@@ -12,6 +11,7 @@ import com.aizihe.codeaai.domain.request.app.AppMyPageRequest;
 import com.aizihe.codeaai.domain.request.app.AppUpdateMyRequest;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.service.IService;
+import org.springframework.http.codec.ServerSentEvent;
 import reactor.core.publisher.Flux;
 
 /**
@@ -21,7 +21,7 @@ import reactor.core.publisher.Flux;
  * @since yyyy-MM-dd
  */
 public interface AppService extends IService<App> {
-    Flux<String> chatToGenCode(Long appId,String message, UserVO loginUser);
+   Flux<ServerSentEvent<String>> chatToGenCode(Long appId, String message, UserVO loginUser);
 
     /**
      * 用户创建应用
