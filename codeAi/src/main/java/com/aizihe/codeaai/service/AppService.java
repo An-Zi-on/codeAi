@@ -21,8 +21,13 @@ import reactor.core.publisher.Flux;
  * @since yyyy-MM-dd
  */
 public interface AppService extends IService<App> {
-   Flux<ServerSentEvent<String>> chatToGenCode(Long appId, String message, UserVO loginUser);
 
+    Flux<ServerSentEvent<String>> chatToGenCode(Long appId, String message, UserVO loginUser);
+
+    /**
+     * 项目部署
+    */
+    String deployApp(Long appId, UserVO loginUser);
     /**
      * 用户创建应用
      */
