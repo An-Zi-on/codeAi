@@ -11,6 +11,7 @@ import com.aizihe.codeaai.domain.request.app.AppMyPageRequest;
 import com.aizihe.codeaai.domain.request.app.AppUpdateMyRequest;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.service.IService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.codec.ServerSentEvent;
 import reactor.core.publisher.Flux;
 
@@ -31,32 +32,32 @@ public interface AppService extends IService<App> {
     /**
      * 用户创建应用
      */
-    Long createApp(AppCreateRequest request);
+    Long createApp(AppCreateRequest appCreateRequest,HttpServletRequest request);
 
     /**
      * 用户更新自己的应用（目前仅支持名称）
      */
-    Boolean updateMyApp(AppUpdateMyRequest request);
+    Boolean updateMyApp(AppUpdateMyRequest appUpdateMyRequest,HttpServletRequest request);
 
     /**
      * 用户删除自己的应用
      */
-    Boolean deleteMyApp(DeleteRequest request);
+    Boolean deleteMyApp(DeleteRequest deleteRequest,HttpServletRequest request);
 
     /**
      * 用户查看自己应用详情
      */
-    App getMyAppDetail(Long appId);
+    App getMyAppDetail(Long appId,HttpServletRequest request);
 
     /**
      * 用户分页查询自己的应用（最多 20 条）
      */
-    Page<App> pageMyApps(AppMyPageRequest request);
+    Page<App> pageMyApps(AppMyPageRequest appMyPageRequest,HttpServletRequest request);
 
     /**
      * 分页查询精选应用（最多 20 条）
      */
-    Page<App> pageFeaturedApps(AppFeaturedPageRequest request);
+    Page<App> pageFeaturedApps(AppFeaturedPageRequest appFeaturedPageRequest, HttpServletRequest request);
 
     /**
      * 管理员删除任意应用

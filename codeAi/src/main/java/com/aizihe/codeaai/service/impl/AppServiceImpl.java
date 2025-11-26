@@ -22,11 +22,13 @@ import com.aizihe.codeaai.exception.BusinessException;
 import com.aizihe.codeaai.exception.ErrorCode;
 import com.aizihe.codeaai.mapper.AppMapper;
 import com.aizihe.codeaai.service.AppService;
+import com.aizihe.codeaai.service.ChatHistoryService;
 import com.aizihe.codeaai.service.UserService;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -50,6 +52,8 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     private UserService userService;
     @Resource
     AiCodeGeneratorFacade aiCodeGeneratorFacade;
+    @Resource
+    private ChatHistoryService chatHistoryService;
 
     @Override
     public String deployApp(Long appId, UserVO loginUser) {
@@ -123,9 +127,9 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     }
 
     @Override
-    public Long createApp(AppCreateRequest request) {
-        AppCreateRequest safeRequest = requireNonNull(request, ErrorCode.PARAMS_ERROR);
-        UserVO currentUser = userService.current();
+    public Long createApp(AppCreateRequest appCreateRequest, HttpServletRequest request) {
+        AppCreateRequest safeRequest = requireNonNull(appCreateRequest, ErrorCode.PARAMS_ERROR);
+        UserVO currentUser = userService.current(request);
         //先提取初始化提示词的前12位作为应用的初始名称
         validateRequiredString(safeRequest.getInitPrompt(), "初始化提示词", 10, 5000);
         LocalDateTime now = LocalDateTime.now();
@@ -145,11 +149,11 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     }
 
     @Override
-    public Boolean updateMyApp(AppUpdateMyRequest request) {
-        AppUpdateMyRequest safeRequest = requireNonNull(request, ErrorCode.PARAMS_ERROR);
+    public Boolean updateMyApp(AppUpdateMyRequest updateMyRequest,HttpServletRequest request) {
+        AppUpdateMyRequest safeRequest = requireNonNull(updateMyRequest, ErrorCode.PARAMS_ERROR);
         Long appId = requireNonNull(safeRequest.getId(), ErrorCode.PARAMS_ERROR);
         validateRequiredString(safeRequest.getAppName(), "应用名称", 2, 30);
-        UserVO currentUser = userService.current();
+        UserVO currentUser = userService.current(request);
         App dbApp = requireNonNull(getById(appId), ErrorCode.NOT_FOUND_ERROR);
         //仅当前用户修改自己用户
         ThrowUtils.throwIf(!dbApp.getUserId().equals(currentUser.getId()), ErrorCode.NO_AUTH_ERROR);
@@ -166,32 +170,33 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     }
 
     @Override
-    public Boolean deleteMyApp(DeleteRequest request) {
-        Long appId = request.getId();
+    public Boolean deleteMyApp(DeleteRequest deleteRequest,HttpServletRequest request) {
+        Long appId = deleteRequest.getId();
         Long safeAppId = requireNonNull(appId, ErrorCode.PARAMS_ERROR);
-        UserVO currentUser = userService.current();
+        UserVO currentUser = userService.current(request);
         App dbApp = requireNonNull(getById(safeAppId), ErrorCode.NOT_FOUND_ERROR);
         //仅本人和管理员可删除
         ThrowUtils.throwIf(!dbApp.getUserId().equals(currentUser.getId()) && !UserRole.ADMIN.getValue().equals(currentUser.getUserRole())
                 , ErrorCode.NO_AUTH_ERROR);
         boolean result = this.removeById(safeAppId);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "删除应用失败");
+        chatHistoryService.removeByAppId(safeAppId);
         return true;
     }
 
     @Override
-    public App getMyAppDetail(Long appId) {
+    public App getMyAppDetail(Long appId,HttpServletRequest request) {
         Long safeAppId = requireNonNull(appId, ErrorCode.PARAMS_ERROR);
-        UserVO currentUser = userService.current();
+        UserVO currentUser = userService.current(request);
         App dbApp = requireNonNull(getById(safeAppId), ErrorCode.NOT_FOUND_ERROR);
         ThrowUtils.throwIf(!dbApp.getUserId().equals(currentUser.getId()), ErrorCode.NO_AUTH_ERROR);
         return dbApp;
     }
 
     @Override
-    public Page<App> pageMyApps(AppMyPageRequest request) {
-        AppMyPageRequest safeRequest = requireNonNull(request, ErrorCode.PARAMS_ERROR);
-        UserVO currentUser = userService.current();
+    public Page<App> pageMyApps(AppMyPageRequest appMyPageRequest,HttpServletRequest request) {
+        AppMyPageRequest safeRequest = requireNonNull(appMyPageRequest, ErrorCode.PARAMS_ERROR);
+        UserVO currentUser = userService.current(request);
         int current = normalizeCurrent(safeRequest.getCurrent());
         int pageSize = normalizeSize(safeRequest.getSize(), MAX_PAGE_SIZE);
         Page<App> page = Page.of(current, pageSize);
@@ -206,9 +211,9 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     }
 
     @Override
-    public Page<App> pageFeaturedApps(AppFeaturedPageRequest request) {
-        AppFeaturedPageRequest safeRequest = requireNonNull(request, ErrorCode.PARAMS_ERROR);
-        userService.current();
+    public Page<App> pageFeaturedApps(AppFeaturedPageRequest appFeaturedPageRequest,HttpServletRequest request) {
+        AppFeaturedPageRequest safeRequest = requireNonNull(appFeaturedPageRequest, ErrorCode.PARAMS_ERROR);
+        userService.current(request);
         int current = normalizeCurrent(safeRequest.getCurrent());
         int pageSize = normalizeSize(safeRequest.getSize(), MAX_PAGE_SIZE);
         Page<App> page = Page.of(current, pageSize);
@@ -229,6 +234,7 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         ThrowUtils.throwIf(appId == null, ErrorCode.PARAMS_ERROR);
         boolean result = this.removeById(appId);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "删除应用失败");
+        chatHistoryService.removeByAppId(appId);
         return true;
     }
 

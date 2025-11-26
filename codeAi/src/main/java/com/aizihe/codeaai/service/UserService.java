@@ -24,5 +24,5 @@ public interface UserService extends IService<User> {
 
     User checkPssword(UserUpdatePwdRequest request);
 
-    UserVO current();
+    UserVO current(HttpServletRequest request);
 }

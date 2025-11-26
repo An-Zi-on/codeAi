@@ -2,33 +2,41 @@ spring:
   application:
     name: codeAi
 
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      database: 0          # 不再警告
+      timeout: 2000ms
+      # password: your_password
+      client-type: lettuce  # 默认就是 lettuce
+      pool:
+        enabled: true
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+
+  session:
+    store-type: redis
+    timeout: 2592000s
+
   profiles:
     active: stg
-  # DataSource Config
+
   datasource:
     url: jdbc:mysql://localhost:3306/an_ai_code
     username: root
     password: root
-  data:
-    redis:
-      database: 0
-      port: 6379
-      host: 127.0.0.1
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
 server:
   port: 8102
   servlet:
     context-path: /api
-  reactive:
-    session:
-      cookie:
-        domain: api
-
-# springdoc-openapi
+# Swagger
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
-    tags-sorter: alpha
-    operations-sorter: alpha
   api-docs:
     path: /v3/api-docs
   group-configs:

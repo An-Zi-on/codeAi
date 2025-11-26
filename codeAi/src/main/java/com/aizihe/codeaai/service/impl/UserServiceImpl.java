@@ -85,7 +85,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
         String ciphertextU = CryptoUtils.hashPassword(userPassword, USER_SALT);
         ThrowUtils.throwIf(!ciphertextU.equals(userPasswordD),ErrorCode.PARAMS_ERROR,"密码错误");
         UserVO userVO = BeanUtil.copyProperties(user, UserVO.class);
-        redisService.setCacheObject(USER_CACHE, userVO, 5L, TimeUnit.MINUTES);
+        servletRequest.getSession().setAttribute(USER_CACHE,JSONUtil.toJsonStr(userVO));
         return true;
     }
 
@@ -120,14 +120,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
     }
 
     @Override
-    public UserVO current() {
-        UserVO currentUser = redisService.getCacheObject(USER_CACHE);
+    public UserVO current(HttpServletRequest request) {
+        UserVO currentUser = JSONUtil.toBean((String) request.getSession().getAttribute(USER_CACHE),UserVO.class) ;
         ThrowUtils.throwIf(currentUser == null,ErrorCode.NO_AUTH_ERROR,"当前用户未登入");
         Long id = currentUser.getId();
         User user = this.getById(id);
         ThrowUtils.throwIf(user == null,ErrorCode.NOT_FOUND_ERROR);
         UserVO userVO = UserVO.fromEntity(user);
-        redisService.setCacheObject(USER_CACHE, userVO, 5L, TimeUnit.MINUTES);;
+        request.setAttribute(USER_CACHE,JSONUtil.toJsonStr(userVO));
         return userVO;
     }
 

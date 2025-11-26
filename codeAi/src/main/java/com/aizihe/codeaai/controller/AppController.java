@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
@@ -50,11 +51,12 @@ public class AppController {
      */
     @GetMapping(value="/chat/gen/code",produces= MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<String>> generateCode(@RequestParam Long appId,
-                                                      @RequestParam String message
+                                                      @RequestParam String message,
+                                                      HttpServletRequest request
                                           ) {
         ThrowUtils.throwIf(appId == null ||appId<0, ErrorCode.PARAMS_ERROR,"请求参数错误");
         ThrowUtils.throwIf(!StrUtil.isNotBlank(message),ErrorCode.PARAMS_ERROR,"信息为空");
-        UserVO current = userService.current();
+        UserVO current = userService.current(request);
        return appService.chatToGenCode(appId, message, current);
     }
 
@@ -62,48 +64,48 @@ public class AppController {
      * 用户创建应用
      */
     @PostMapping("/my/create")
-    public BaseResponse<Long> createApp(@RequestBody AppCreateRequest request) {
-        return ResultUtils.success(appService.createApp(request));
+    public BaseResponse<Long> createApp(@RequestBody AppCreateRequest appCreateRequest,HttpServletRequest request) {
+        return ResultUtils.success(appService.createApp(appCreateRequest,request));
     }
 
     /**
      * 用户更新自己的应用
      */
     @PutMapping("/my/update")
-    public BaseResponse<Boolean> updateMyApp(@RequestBody AppUpdateMyRequest request) {
-        return ResultUtils.success(appService.updateMyApp(request));
+    public BaseResponse<Boolean> updateMyApp(@RequestBody AppUpdateMyRequest appUpdateMyRequest,HttpServletRequest request) {
+        return ResultUtils.success(appService.updateMyApp(appUpdateMyRequest,request));
     }
 
     /**
      * 用户删除自己的应用
      */
     @PostMapping("/my/delete")
-    public BaseResponse<Boolean> deleteMyApp(@RequestBody DeleteRequest request) {
-        return ResultUtils.success(appService.deleteMyApp(request));
+    public BaseResponse<Boolean> deleteMyApp(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
+        return ResultUtils.success(appService.deleteMyApp(deleteRequest,request));
     }
 
     /**
      * 用户查询自己的应用详情
      */
     @GetMapping("/my/{id}")
-    public BaseResponse<AppVO> getMyApp(@PathVariable Long id) {
-        return ResultUtils.success(AppVO.toVo(appService.getMyAppDetail(id)));
+    public BaseResponse<AppVO> getMyApp(@PathVariable Long id,HttpServletRequest request) {
+        return ResultUtils.success(AppVO.toVo(appService.getMyAppDetail(id,request)));
     }
 
     /**
      * 用户分页查询自己的应用（最多 20 条）
      */
     @PostMapping("/my/page")
-    public BaseResponse<Page<AppVO>> pageMyApps(@RequestBody AppMyPageRequest request) {
-        return ResultUtils.success(convertPage(appService.pageMyApps(request)));
+    public BaseResponse<Page<AppVO>> pageMyApps(@RequestBody AppMyPageRequest appMyPageRequest,HttpServletRequest request) {
+        return ResultUtils.success(convertPage(appService.pageMyApps(appMyPageRequest,request)));
     }
 
     /**
      * 用户分页查询精选应用（最多 20 条）
      */
     @PostMapping("/featured/page")
-    public BaseResponse<Page<AppVO>> pageFeaturedApps(@RequestBody AppFeaturedPageRequest request) {
-        return ResultUtils.success(convertPage(appService.pageFeaturedApps(request)));
+    public BaseResponse<Page<AppVO>> pageFeaturedApps(@RequestBody AppFeaturedPageRequest appFeaturedPageRequest,HttpServletRequest request) {
+        return ResultUtils.success(convertPage(appService.pageFeaturedApps(appFeaturedPageRequest,request)));
     }
 
     // ========== 管理员 ==========
