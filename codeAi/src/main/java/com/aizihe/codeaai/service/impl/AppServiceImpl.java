@@ -17,6 +17,8 @@ import com.aizihe.codeaai.domain.request.app.AppCreateRequest;
 import com.aizihe.codeaai.domain.request.app.AppFeaturedPageRequest;
 import com.aizihe.codeaai.domain.request.app.AppMyPageRequest;
 import com.aizihe.codeaai.domain.request.app.AppUpdateMyRequest;
+import com.aizihe.codeaai.domain.request.chathistory.ChatHistoryMessageSaveRequest;
+import com.aizihe.codeaai.enums.ChatMessageTypeEnum;
 import com.aizihe.codeaai.enums.UserRole;
 import com.aizihe.codeaai.exception.BusinessException;
 import com.aizihe.codeaai.exception.ErrorCode;
@@ -29,8 +31,10 @@ import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -51,10 +55,9 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     @Resource
     private UserService userService;
     @Resource
-    AiCodeGeneratorFacade aiCodeGeneratorFacade;
+    private AiCodeGeneratorFacade aiCodeGeneratorFacade;
     @Resource
     private ChatHistoryService chatHistoryService;
-
     @Override
     public String deployApp(Long appId, UserVO loginUser) {
         // 1. 参数校验
@@ -106,23 +109,43 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         App appDo = this.getById(appId);
         ThrowUtils.throwIf(appDo == null,ErrorCode.NOT_FOUND_ERROR);
         //仅本人和管理员才能在自己项目进行创建
-        ThrowUtils.throwIf(!appDo.getUserId().equals(loginUser.getId()) && loginUser.getUserRole().equals(UserRole.ADMIN.getValue()),ErrorCode.NO_AUTH_ERROR,"无权限生成代码");
+        ThrowUtils.throwIf(!appDo.getUserId().equals(
+                        loginUser.getId()) && loginUser.getUserRole().equals(UserRole.ADMIN.getValue())
+                , ErrorCode.NO_AUTH_ERROR,
+                "无权限生成代码");
         //获取生成的代码类型
         String codeGenType = appDo.getCodeGenType();
         ThrowUtils.throwIf(!StrUtil.isNotBlank(codeGenType),ErrorCode.NOT_FOUND_ERROR,"生成代码的类型不存在");
         //获取对应生成类型
         CodeGenTypeEnum codeGenTypeEnum = CodeGenTypeEnum.getByValue(codeGenType);
         ThrowUtils.throwIf(codeGenTypeEnum == null,ErrorCode.PARAMS_ERROR,"生成代码的类型不存在");
+        //存储用户的消息
+        Long result = chatHistoryService.saveMessage(
+                ChatHistoryMessageSaveRequest.builder()
+                        .message(message)
+                        .messageType(ChatMessageTypeEnum.USER.getValue())
+                        .appId(appId).build(), loginUser
+        );
+        ThrowUtils.throwIf(result < 0, ErrorCode.SYSTEM_ERROR, "用户消息存储失败");
         Flux<String> stringFlux = aiCodeGeneratorFacade.generateCode(message, codeGenTypeEnum, appId);
-        return  stringFlux.map(chunk ->{
-            Map<String,String> wrapper = Map.of("d",chunk);
-            String jsonData = JSONUtil.toJsonStr(wrapper);
-            return ServerSentEvent.<String>builder().data(jsonData).build();
-        })
-            .concatWith(Mono.just(
-                        ServerSentEvent.<String>builder()
-                                .event("done").data("").build()
-            ));
+        StringBuilder aiMessage = new StringBuilder();
+        return stringFlux
+                .doOnNext(aiMessage::append)
+                .map(chunk -> {
+                    Map<String, String> wrapper = Map.of("d", chunk);
+                    String jsonData = JSONUtil.toJsonStr(wrapper);
+                    return ServerSentEvent.<String>builder().data(jsonData).build();
+                })
+                .concatWith(Mono.just(ServerSentEvent.<String>builder().event("done").data("").build()))
+                .doOnComplete(() -> {
+                    Long resultAi = chatHistoryService.saveMessage(
+                            ChatHistoryMessageSaveRequest.builder()
+                                    .message(String.valueOf(aiMessage))
+                                    .messageType(ChatMessageTypeEnum.AI.getValue())
+                                    .appId(appId).build(), loginUser
+                    );
+                    ThrowUtils.throwIf(resultAi < 0, ErrorCode.SYSTEM_ERROR, "ai信息存储失败");
+                });
 
     }
 
@@ -170,6 +193,7 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     }
 
     @Override
+    @Transactional
     public Boolean deleteMyApp(DeleteRequest deleteRequest,HttpServletRequest request) {
         Long appId = deleteRequest.getId();
         Long safeAppId = requireNonNull(appId, ErrorCode.PARAMS_ERROR);
@@ -180,7 +204,9 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
                 , ErrorCode.NO_AUTH_ERROR);
         boolean result = this.removeById(safeAppId);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "删除应用失败");
-        chatHistoryService.removeByAppId(safeAppId);
+        //删除应用 也需要删除相关的应用关联的历史记录
+        boolean chatResult = chatHistoryService.removeByAppId(safeAppId);
+        ThrowUtils.throwIf(!chatResult, ErrorCode.SYSTEM_ERROR, "历史对话删除失败");
         return true;
     }
 
@@ -197,8 +223,8 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     public Page<App> pageMyApps(AppMyPageRequest appMyPageRequest,HttpServletRequest request) {
         AppMyPageRequest safeRequest = requireNonNull(appMyPageRequest, ErrorCode.PARAMS_ERROR);
         UserVO currentUser = userService.current(request);
-        int current = normalizeCurrent(safeRequest.getCurrent());
-        int pageSize = normalizeSize(safeRequest.getSize(), MAX_PAGE_SIZE);
+        int current = normalizeCurrent(safeRequest.getPageNum());
+        int pageSize = normalizeSize(safeRequest.getPageSize(), MAX_PAGE_SIZE);
         Page<App> page = Page.of(current, pageSize);
         QueryWrapper queryWrapper = QueryWrapper.create()
                 .eq(App::getUserId, currentUser.getId())
@@ -214,8 +240,8 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     public Page<App> pageFeaturedApps(AppFeaturedPageRequest appFeaturedPageRequest,HttpServletRequest request) {
         AppFeaturedPageRequest safeRequest = requireNonNull(appFeaturedPageRequest, ErrorCode.PARAMS_ERROR);
         userService.current(request);
-        int current = normalizeCurrent(safeRequest.getCurrent());
-        int pageSize = normalizeSize(safeRequest.getSize(), MAX_PAGE_SIZE);
+        int current = normalizeCurrent(safeRequest.getPageNum());
+        int pageSize = normalizeSize(safeRequest.getPageSize(), MAX_PAGE_SIZE);
         Page<App> page = Page.of(current, pageSize);
         QueryWrapper queryWrapper = QueryWrapper.create()
                 .eq(App::getIsDelete, 0)
@@ -229,12 +255,15 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     }
 
     @Override
+    @Transactional
     public Boolean adminDeleteApp(DeleteRequest request) {
         Long appId = request.getId();
         ThrowUtils.throwIf(appId == null, ErrorCode.PARAMS_ERROR);
         boolean result = this.removeById(appId);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "删除应用失败");
-        chatHistoryService.removeByAppId(appId);
+        //删除应用 也需要删除相关的应用关联的历史记录
+        boolean chatResult = chatHistoryService.removeByAppId(appId);
+        ThrowUtils.throwIf(!chatResult, ErrorCode.SYSTEM_ERROR, "历史对话删除失败");
         return true;
     }
 
@@ -269,8 +298,8 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     @Override
     public Page<App> adminPage(AppAdminPageRequest request) {
         AppAdminPageRequest safeRequest = requireNonNull(request, ErrorCode.PARAMS_ERROR);
-        int current = normalizeCurrent(safeRequest.getCurrent());
-        int size = (safeRequest.getSize() == null || safeRequest.getSize() <= 0) ? 10 : safeRequest.getSize();
+        int current =request.getPageNum();
+        int size = safeRequest.getPageSize();
         Page<App> page = Page.of(current, size);
         // 动态拼接参数
         QueryWrapper queryWrapper = QueryWrapper.create();

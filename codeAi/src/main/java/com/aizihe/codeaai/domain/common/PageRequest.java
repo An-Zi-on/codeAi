@@ -1,22 +1,28 @@
 package com.aizihe.codeaai.domain.common;
+
 import lombok.Data;
 
-/**
- * 分页请求参数
- */
 @Data
 public class PageRequest {
 
     /**
-     * 当前第几页
-     * 默认第一页
+     * 当前页号
      */
-    private Integer current = 1;
+    private int pageNum = 1;
 
     /**
-     * 每页记录数
-     * 默认每页十条记录
+     * 页面大小
      */
-    private Integer size = 10;
+    private int pageSize = 10;
 
+    /**
+     * 排序字段
+     */
+    private String sortField;
+
+    /**
+     * 排序顺序（默认降序）
+     */
+    private String sortOrder = "descend";
 }
+

@@ -131,6 +131,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
         return userVO;
     }
 
+    @Override
+    public UserVO isAdmin(HttpServletRequest request) {
+        UserVO current = current(request);
+        ThrowUtils.throwIf(UserRole.ADMIN.getValue().equals(current.getUserRole()),ErrorCode.NO_AUTH_ERROR);
+        return current;
+
+    }
+
     /**
      * 校验字符串字段
      *

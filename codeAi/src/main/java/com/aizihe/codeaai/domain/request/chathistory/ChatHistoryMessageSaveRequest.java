@@ -1,11 +1,13 @@
 package com.aizihe.codeaai.domain.request.chathistory;
 
+import lombok.Builder;
 import lombok.Data;
 
 /**
  * 保存对话消息请求
  */
 @Data
+@Builder
 public class ChatHistoryMessageSaveRequest {
 
     /**

@@ -4,10 +4,14 @@ import com.aizihe.codeaai.domain.VO.ChatHistoryVO;
 import com.aizihe.codeaai.domain.entity.ChatHistory;
 import com.aizihe.codeaai.domain.request.chathistory.ChatHistoryAdminPageRequest;
 import com.aizihe.codeaai.domain.request.chathistory.ChatHistoryMessageSaveRequest;
-import com.aizihe.codeaai.domain.request.chathistory.ChatHistoryPageRequest;
 import com.aizihe.codeaai.domain.VO.UserVO;
+import com.aizihe.codeaai.domain.request.chathistory.ChatHistoryQueryRequest;
 import com.mybatisflex.core.paginate.Page;
+import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.service.IService;
+import jakarta.servlet.http.HttpServletRequest;
+
+import java.time.LocalDateTime;
 
 /**
  * 对话历史 服务层。
@@ -25,13 +29,14 @@ public interface ChatHistoryService extends IService<ChatHistory> {
     /**
      * 用户/应用侧分页查询
      */
-    Page<ChatHistoryVO> pageAppHistory(ChatHistoryPageRequest request, UserVO currentUser);
+    Page<ChatHistoryVO> pageAppHistory(Long appId, LocalDateTime lastCreateTime, int pageSize, UserVO currentUser);
 
     /**
-     * 管理员分页查询
+     * 拼接查询条件
+     * @param request
+     * @return
      */
-    Page<ChatHistoryVO> pageAdminHistory(ChatHistoryAdminPageRequest request);
-
+     QueryWrapper getQueryWrapper(ChatHistoryQueryRequest request);
     /**
      * 根据应用删除历史
      */

@@ -25,4 +25,11 @@ public interface UserService extends IService<User> {
     User checkPssword(UserUpdatePwdRequest request);
 
     UserVO current(HttpServletRequest request);
+
+    /***
+     * 校验是否是管理员
+     * @param request
+     * @return 当前登入的用户
+     */
+    UserVO isAdmin(HttpServletRequest request);
 }

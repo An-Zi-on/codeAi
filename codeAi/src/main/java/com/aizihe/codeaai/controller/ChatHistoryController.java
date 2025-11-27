@@ -2,21 +2,25 @@ package com.aizihe.codeaai.controller;
 
 import com.aizihe.codeaai.ThrowUtils.BaseResponse;
 import com.aizihe.codeaai.ThrowUtils.ResultUtils;
+import com.aizihe.codeaai.ThrowUtils.ThrowUtils;
 import com.aizihe.codeaai.annotation.MustRole;
 import com.aizihe.codeaai.domain.VO.ChatHistoryVO;
 import com.aizihe.codeaai.domain.VO.UserVO;
+import com.aizihe.codeaai.domain.entity.ChatHistory;
 import com.aizihe.codeaai.domain.request.chathistory.ChatHistoryAdminPageRequest;
 import com.aizihe.codeaai.domain.request.chathistory.ChatHistoryMessageSaveRequest;
-import com.aizihe.codeaai.domain.request.chathistory.ChatHistoryPageRequest;
+import com.aizihe.codeaai.domain.request.chathistory.ChatHistoryQueryRequest;
+import com.aizihe.codeaai.enums.UserRole;
+import com.aizihe.codeaai.exception.ErrorCode;
 import com.aizihe.codeaai.service.ChatHistoryService;
 import com.aizihe.codeaai.service.UserService;
 import com.mybatisflex.core.paginate.Page;
+import com.mybatisflex.core.query.QueryWrapper;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
 
 /**
  * 对话历史 控制层。
@@ -47,18 +51,30 @@ public class ChatHistoryController {
      * 应用页分页查询（最新 10 条，支持翻页）
      */
     @PostMapping("/page")
-    public BaseResponse<Page<ChatHistoryVO>> pageByApp(@RequestBody ChatHistoryPageRequest request,
-                                                       HttpServletRequest httpServletRequest) {
+    public BaseResponse<Page<ChatHistoryVO>> pageByApp(@RequestParam Long appId,
+                                                       @RequestParam LocalDateTime lastCreateTime,
+                                                       @RequestParam int pageSize,
+                                                       @RequestParam HttpServletRequest httpServletRequest) {
         UserVO currentUser = userService.current(httpServletRequest);
-        return ResultUtils.success(chatHistoryService.pageAppHistory(request, currentUser));
+        return ResultUtils.success(chatHistoryService.pageAppHistory(appId, lastCreateTime, pageSize, currentUser));
     }
 
     /**
-     * 管理员分页查询所有应用对话历史（时间倒序）
+     * 管理员分页查询所有对话历史
+     *
+     * @param chatHistoryQueryRequest 查询请求
+     * @return 对话历史分页
      */
-    @PostMapping("/admin/page")
+    @PostMapping("/admin/list/page/vo")
     @MustRole(needRole = "admin")
-    public BaseResponse<Page<ChatHistoryVO>> adminPage(@RequestBody ChatHistoryAdminPageRequest request) {
-        return ResultUtils.success(chatHistoryService.pageAdminHistory(request));
+    public BaseResponse<Page<ChatHistory>> listAllChatHistoryByPageForAdmin(@RequestBody ChatHistoryQueryRequest chatHistoryQueryRequest) {
+        ThrowUtils.throwIf(chatHistoryQueryRequest == null, ErrorCode.PARAMS_ERROR);
+        long pageNum = chatHistoryQueryRequest.getPageNum();
+        long pageSize = chatHistoryQueryRequest.getPageSize();
+        // 查询数据
+        QueryWrapper queryWrapper = chatHistoryService.getQueryWrapper(chatHistoryQueryRequest);
+        Page<ChatHistory> result = chatHistoryService.page(Page.of(pageNum, pageSize), queryWrapper);
+        return ResultUtils.success(result);
     }
+
 }

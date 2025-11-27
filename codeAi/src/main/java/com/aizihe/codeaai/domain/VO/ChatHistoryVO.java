@@ -34,7 +34,7 @@ public class ChatHistoryVO implements Serializable {
 
     private LocalDateTime createTime;
 
-    public static ChatHistoryVO fromEntity(ChatHistory entity) {
+    public static ChatHistoryVO toVO(ChatHistory entity) {
         if (entity == null) {
             return null;
         }
