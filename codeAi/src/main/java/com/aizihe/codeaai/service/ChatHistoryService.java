@@ -2,14 +2,13 @@ package com.aizihe.codeaai.service;
 
 import com.aizihe.codeaai.domain.VO.ChatHistoryVO;
 import com.aizihe.codeaai.domain.entity.ChatHistory;
-import com.aizihe.codeaai.domain.request.chathistory.ChatHistoryAdminPageRequest;
 import com.aizihe.codeaai.domain.request.chathistory.ChatHistoryMessageSaveRequest;
 import com.aizihe.codeaai.domain.VO.UserVO;
 import com.aizihe.codeaai.domain.request.chathistory.ChatHistoryQueryRequest;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.service.IService;
-import jakarta.servlet.http.HttpServletRequest;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 
 import java.time.LocalDateTime;
 
@@ -41,4 +40,14 @@ public interface ChatHistoryService extends IService<ChatHistory> {
      * 根据应用删除历史
      */
     boolean removeByAppId(Long appId);
+
+    /**
+     * 加载历史消息
+     * @param appId
+     * @param chatMemory
+     * @param maxCount
+     * @return
+     */
+     int loadChatHistoryToMemory(Long appId, MessageWindowChatMemory chatMemory, int maxCount);
+
 }

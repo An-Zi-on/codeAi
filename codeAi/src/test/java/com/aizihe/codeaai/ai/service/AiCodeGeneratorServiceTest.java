@@ -24,8 +24,8 @@ class AiCodeGeneratorServiceTest {
 
     @Test
     void generateSignalCode() {
-        Flux<String> result= aiCodeGeneratorService.generateSignalCode("测试");
-
+        System.out.println(aiCodeGeneratorService.generateSignalCode(1L, "我叫什么"));
+        System.out.println("11111");
     }
 
     @Test

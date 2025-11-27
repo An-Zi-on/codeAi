@@ -8,6 +8,7 @@ spring:
       port: 6379
       database: 0          # 不再警告
       timeout: 2000ms
+      ttl: 3600
       # password: your_password
       client-type: lettuce  # 默认就是 lettuce
       pool:

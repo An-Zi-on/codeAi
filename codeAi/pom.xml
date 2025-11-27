@@ -23,6 +23,13 @@
     </properties>
 
     <dependencies>
+        <!-- caffeine 本地缓存依赖-->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+
+
         <!-- 历史对话功能 -->
         <dependency>
             <groupId>dev.langchain4j</groupId>

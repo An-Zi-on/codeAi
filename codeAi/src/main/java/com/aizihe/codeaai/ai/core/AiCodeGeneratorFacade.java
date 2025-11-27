@@ -1,6 +1,7 @@
 package com.aizihe.codeaai.ai.core;
 
 import com.aizihe.codeaai.ThrowUtils.ThrowUtils;
+import com.aizihe.codeaai.ai.factor.AiCodeGeneratorServiceFactory;
 import com.aizihe.codeaai.ai.model.MultiFileWebsiteResult;
 import com.aizihe.codeaai.ai.model.SingleFileGenerationResult;
 import com.aizihe.codeaai.ai.model.enums.CodeGenTypeEnum;
@@ -8,7 +9,7 @@ import com.aizihe.codeaai.ai.parser.CodeParser;
 import com.aizihe.codeaai.ai.parser.ParseHtmlCode;
 import com.aizihe.codeaai.ai.parser.ParseMultiFileCode;
 import com.aizihe.codeaai.ai.service.AiCodeGeneratorService;
-import com.aizihe.codeaai.ai.utils.CodeParserUtil;
+import com.aizihe.codeaai.ai.utils.CodeFileSaver;
 import com.aizihe.codeaai.exception.BusinessException;
 import com.aizihe.codeaai.exception.ErrorCode;
 import jakarta.annotation.Resource;
@@ -24,8 +25,10 @@ import java.io.File;
 
 @Service
 public class AiCodeGeneratorFacade {
-    @Resource
     AiCodeGeneratorService aiCodeGeneratorService ;
+
+    @Resource
+    AiCodeGeneratorServiceFactory aiCodeGeneratorServiceFactory;
 
     public static final CodeParser singleCode = new ParseHtmlCode();
     public static final CodeParser multiFileCode = new ParseMultiFileCode();
@@ -43,8 +46,10 @@ public class AiCodeGeneratorFacade {
     }
 
 
+
     public Flux<String> generateAndeSaveHtmlCodeStream(String userMessage,Long appId){
-        Flux<String> result = aiCodeGeneratorService.generateSignalCode(userMessage);
+        aiCodeGeneratorService =aiCodeGeneratorServiceFactory.getAiCodeGeneratorService(appId);
+        Flux<String> result = aiCodeGeneratorService.generateSignalCode(appId,userMessage);
         StringBuilder stringBuilder = new StringBuilder();
         //时时收集代码片段
         return result.doOnNext(stringBuilder::append).doOnComplete(()->{
@@ -60,6 +65,8 @@ public class AiCodeGeneratorFacade {
     }
 
     public Flux<String> generateAndSaveMultiCodeStream(String userMessage,Long appId){
+        //工厂类中取数据
+        aiCodeGeneratorService =aiCodeGeneratorServiceFactory.getAiCodeGeneratorService(appId);
         Flux<String>  result = aiCodeGeneratorService.generateMultiCode(userMessage);
         StringBuilder stringBuilder = new StringBuilder();
         return result.doOnNext(stringBuilder::append).doOnComplete(()->{

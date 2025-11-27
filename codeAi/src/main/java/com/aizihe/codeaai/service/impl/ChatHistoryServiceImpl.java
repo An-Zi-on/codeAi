@@ -1,5 +1,6 @@
 package com.aizihe.codeaai.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.aizihe.codeaai.ThrowUtils.ThrowUtils;
 import com.aizihe.codeaai.domain.VO.ChatHistoryVO;
@@ -20,6 +21,9 @@ import com.aizihe.codeaai.service.UserService;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Lazy;
@@ -147,6 +151,33 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
         QueryWrapper queryWrapper = QueryWrapper.create()
                 .eq(ChatHistory::getAppId, appId);
         return this.remove(queryWrapper);
+    }
+
+    @Override
+    public int loadChatHistoryToMemory(Long appId, MessageWindowChatMemory chatMemory, int maxCount) {
+        QueryWrapper queryWrapper  = QueryWrapper.create()
+                .eq(ChatHistory::getAppId,appId)
+                .orderBy(ChatHistory::getCreateTime,false)
+                .limit(1,maxCount);
+        List<ChatHistory> historyList = this.list(queryWrapper);
+        if (CollUtil.isEmpty(historyList)){
+            return 0;
+        }
+        int loadCount = 0;
+        historyList = historyList.reversed();
+        //清除缓存
+        chatMemory.clear();
+        for (ChatHistory history:historyList) {
+            if (ChatMessageTypeEnum.AI.getValue().equals(history.getMessageType())){
+                chatMemory.add(UserMessage.from(history.getMessage()));
+                loadCount++;
+            }
+            if (ChatMessageTypeEnum.AI.getValue().equals(history.getMessageType())) {
+                chatMemory.add(AiMessage.from(history.getMessage()));
+                loadCount++;
+            }
+        }
+        return loadCount;
     }
 
     /**

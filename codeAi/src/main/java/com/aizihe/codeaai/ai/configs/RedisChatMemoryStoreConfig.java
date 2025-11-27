@@ -1,4 +1,4 @@
-package com.aizihe.codeaai.config;
+package com.aizihe.codeaai.ai.configs;
 
 import dev.langchain4j.community.store.memory.chat.redis.RedisChatMemoryStore;
 import lombok.Data;

@@ -102,7 +102,9 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         // 9. 返回可访问的 URL
         return String.format("%s/%s/", DeployConstant.CODE_DEPLOY_HOST, deployKey);
     }
+
     @Override
+    @Transactional
     public Flux<ServerSentEvent<String>> chatToGenCode(Long appId, String message, UserVO loginUser) {
         ThrowUtils.throwIf(!StrUtil.isNotBlank(message),ErrorCode.NOT_FOUND_ERROR,"描述不能为空");
         ThrowUtils.throwIf(appId == null||appId<0,ErrorCode.PARAMS_ERROR);
