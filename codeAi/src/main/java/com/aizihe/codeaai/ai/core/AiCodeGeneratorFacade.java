@@ -66,7 +66,7 @@ public class AiCodeGeneratorFacade {
 
     public Flux<String> generateAndSaveMultiCodeStream(String userMessage,Long appId){
         //工厂类中取数据
-        aiCodeGeneratorService =aiCodeGeneratorServiceFactory.getAiCodeGeneratorService(appId);
+         aiCodeGeneratorService =aiCodeGeneratorServiceFactory.getAiCodeGeneratorService(appId);
         Flux<String>  result = aiCodeGeneratorService.generateMultiCode(userMessage);
         StringBuilder stringBuilder = new StringBuilder();
         return result.doOnNext(stringBuilder::append).doOnComplete(()->{

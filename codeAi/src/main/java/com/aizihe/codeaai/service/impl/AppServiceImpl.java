@@ -339,7 +339,8 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     @Override
     public App adminGetDetail(Long id) {
         Long safeId = requireNonNull(id, ErrorCode.PARAMS_ERROR);
-        return requireNonNull(getById(safeId), ErrorCode.NOT_FOUND_ERROR);
+        App byId = getById(safeId);
+        return requireNonNull(byId, ErrorCode.NOT_FOUND_ERROR);
     }
 
     /**

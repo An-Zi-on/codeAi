@@ -43,8 +43,7 @@ public class AuthInterceptor {
             throw new RuntimeException("Not in web request context");
         }
         HttpServletRequest request = attributes.getRequest();
-
-        UserVO currentUser = redisService.getCacheObject(Constants.USER_CACHE);
+        UserVO currentUser =  JSONUtil.toBean((String) request.getSession().getAttribute(Constants.USER_CACHE),UserVO.class);
         String currentUserRole = currentUser.getUserRole();
         ThrowUtils.throwIf(currentUserRole == null || !currentUserRole.equals(requiredRole), ErrorCode.NO_AUTH_ERROR);
 
