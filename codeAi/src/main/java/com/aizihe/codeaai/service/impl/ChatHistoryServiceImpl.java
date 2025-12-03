@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.aizihe.codeaai.ThrowUtils.ThrowUtils;
 import com.aizihe.codeaai.domain.VO.ChatHistoryVO;
 import com.aizihe.codeaai.domain.VO.UserVO;
+import com.aizihe.codeaai.domain.common.ByIdRequest;
 import com.aizihe.codeaai.domain.entity.App;
 import com.aizihe.codeaai.domain.entity.ChatHistory;
 import com.aizihe.codeaai.domain.entity.User;
@@ -88,7 +89,7 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
     @Override
     public Page<ChatHistoryVO> pageAppHistory(Long appId, LocalDateTime lastCreateTime, int pageSize, UserVO currentUser) {
         //校验页数是否正确
-        ThrowUtils.throwIf(pageSize < 0 || pageSize > 50, ErrorCode.PARAMS_ERROR, "请求页数不正确");
+        ThrowUtils.throwIf(pageSize < 0 || pageSize > 100, ErrorCode.PARAMS_ERROR, "请求页数不正确");
         //校验用户是否登入
         UserVO safeUser = requireNonNull(currentUser, ErrorCode.NOT_LOGIN_ERROR);
         //校验appId是否正确
@@ -178,6 +179,20 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
             }
         }
         return loadCount;
+    }
+
+    @Override
+    public ChatHistoryVO getLastHistory(ByIdRequest byIdRequest) {
+        QueryWrapper queryWrapper = QueryWrapper.create();
+        queryWrapper.eq(ChatHistory::getAppId,byIdRequest.getId())
+                .orderBy(ChatHistory::getCreateTime)
+                .desc()
+                .limit(0);
+        List<ChatHistory> list = this.list(queryWrapper);
+        if (CollUtil.isEmpty(list)){
+            return  null;
+        }
+        return ChatHistoryVO.toVO(list.get(0));
     }
 
     /**

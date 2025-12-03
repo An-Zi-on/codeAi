@@ -4,6 +4,7 @@ import com.aizihe.codeaai.domain.common.PageRequest;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -42,5 +43,6 @@ public class ChatHistoryQueryRequest extends PageRequest implements Serializable
      */
     private LocalDateTime lastCreateTime;
 
+    @Serial
     private static final long serialVersionUID = 1L;
 }

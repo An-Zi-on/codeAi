@@ -49,7 +49,7 @@ public class AiCodeGeneratorFacade {
 
     public Flux<String> generateAndeSaveHtmlCodeStream(String userMessage,Long appId){
         aiCodeGeneratorService =aiCodeGeneratorServiceFactory.getAiCodeGeneratorService(appId);
-        Flux<String> result = aiCodeGeneratorService.generateSignalCode(appId,userMessage);
+        Flux<String> result = aiCodeGeneratorService.generateSignalCode(userMessage);
         StringBuilder stringBuilder = new StringBuilder();
         //时时收集代码片段
         return result.doOnNext(stringBuilder::append).doOnComplete(()->{

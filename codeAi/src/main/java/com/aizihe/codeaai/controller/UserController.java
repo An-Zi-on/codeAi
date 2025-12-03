@@ -124,7 +124,7 @@ public class UserController {
      * @return 用户详情
      */
     @GetMapping("/current")
-    public BaseResponse<UserVO> getInfo(HttpServletRequest request) {
+    public BaseResponse<UserVO> current(HttpServletRequest request) {
         return ResultUtils.success(userService.current(request));
     }
 

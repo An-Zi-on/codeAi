@@ -6,6 +6,7 @@ import com.aizihe.codeaai.ThrowUtils.ThrowUtils;
 import com.aizihe.codeaai.annotation.MustRole;
 import com.aizihe.codeaai.domain.VO.ChatHistoryVO;
 import com.aizihe.codeaai.domain.VO.UserVO;
+import com.aizihe.codeaai.domain.common.ByIdRequest;
 import com.aizihe.codeaai.domain.entity.ChatHistory;
 import com.aizihe.codeaai.domain.request.chathistory.ChatHistoryAdminPageRequest;
 import com.aizihe.codeaai.domain.request.chathistory.ChatHistoryMessageSaveRequest;
@@ -16,6 +17,7 @@ import com.aizihe.codeaai.service.ChatHistoryService;
 import com.aizihe.codeaai.service.UserService;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
+import dev.langchain4j.agent.tool.P;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
@@ -54,8 +56,8 @@ public class ChatHistoryController {
     public BaseResponse<Page<ChatHistoryVO>> pageByApp(@RequestParam Long appId,
                                                        @RequestParam LocalDateTime lastCreateTime,
                                                        @RequestParam int pageSize,
-                                                       @RequestParam HttpServletRequest httpServletRequest) {
-        UserVO currentUser = userService.current(httpServletRequest);
+                                                        HttpServletRequest request) {
+        UserVO currentUser = userService.current(request);
         return ResultUtils.success(chatHistoryService.pageAppHistory(appId, lastCreateTime, pageSize, currentUser));
     }
 
@@ -76,5 +78,15 @@ public class ChatHistoryController {
         Page<ChatHistory> result = chatHistoryService.page(Page.of(pageNum, pageSize), queryWrapper);
         return ResultUtils.success(result);
     }
-
+    @PostMapping("/history/lastTime")
+    public BaseResponse<LocalDateTime> getLastLocalDateTime(@RequestBody ByIdRequest byIdRequest){
+        ThrowUtils.throwIf(byIdRequest == null, ErrorCode.PARAMS_ERROR);
+        Long id = byIdRequest.getId();
+        ThrowUtils.throwIf(id == null ||id <0,ErrorCode.PARAMS_ERROR,"请求参数错误");
+        ChatHistoryVO lastHistory = chatHistoryService.getLastHistory(byIdRequest);
+        if (lastHistory == null){
+            return  ResultUtils.success(LocalDateTime.now());
+        }
+        return ResultUtils.success(lastHistory.getCreateTime());
+    }
 }

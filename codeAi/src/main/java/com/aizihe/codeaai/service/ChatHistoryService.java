@@ -1,6 +1,7 @@
 package com.aizihe.codeaai.service;
 
 import com.aizihe.codeaai.domain.VO.ChatHistoryVO;
+import com.aizihe.codeaai.domain.common.ByIdRequest;
 import com.aizihe.codeaai.domain.entity.ChatHistory;
 import com.aizihe.codeaai.domain.request.chathistory.ChatHistoryMessageSaveRequest;
 import com.aizihe.codeaai.domain.VO.UserVO;
@@ -50,4 +51,5 @@ public interface ChatHistoryService extends IService<ChatHistory> {
      */
      int loadChatHistoryToMemory(Long appId, MessageWindowChatMemory chatMemory, int maxCount);
 
+    ChatHistoryVO getLastHistory(ByIdRequest byIdRequest);
 }

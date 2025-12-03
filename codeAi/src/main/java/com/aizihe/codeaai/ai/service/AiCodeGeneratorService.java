@@ -16,7 +16,7 @@ public interface AiCodeGeneratorService {
      * @return
      */
     @SystemMessage(fromResource = "/system-prompt/single-file-prompt.txt")
-    Flux<String> generateSignalCode(@MemoryId Long memoryId, @UserMessage String userMessage);
+    Flux<String> generateSignalCode( @UserMessage String userMessage);
     //历史会话  如果加入了历史会话 使用MemoryId来进行存储的话需要会为每一个memoryId 单独进行历史记录存储
     //Flux<String> generateSignalCode(@MemoryId Long memoryId, @UserMessage String userMessage);
     /**
