@@ -1,7 +1,6 @@
 package com.aizihe.codeaai.ai.utils;
 
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.aizihe.codeaai.ai.model.MultiFileWebsiteResult;
 import com.aizihe.codeaai.ai.model.SingleFileGenerationResult;
@@ -16,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 public class CodeFileSaver {
 
     // 保存在当前项目路径下   如: C:\Users\AnProject\private\codeAi
-    private static final String FILE_SAVE_ROOT_DIR = System.getProperty("user.dir") + "/tmp/code_output";
+    private static final String FILE_SAVE_ROOT_DIR = System.getProperty("user.dir") + File.separator+"tmp"+File.separator+"code_output";
 
     /**
      * 保存 HtmlCodeResult

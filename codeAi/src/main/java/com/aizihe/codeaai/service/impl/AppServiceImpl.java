@@ -31,7 +31,9 @@ import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.context.annotation.Lazy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.apache.catalina.connector.ClientAbortException;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,6 +53,7 @@ import java.util.Map;
 @Service
 public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppService {
     private static final int MAX_PAGE_SIZE = 20;
+    private static final Logger log = LoggerFactory.getLogger(AppServiceImpl.class);
 
     @Resource
     private UserService userService;
@@ -111,10 +114,9 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         App appDo = this.getById(appId);
         ThrowUtils.throwIf(appDo == null,ErrorCode.NOT_FOUND_ERROR);
         //仅本人和管理员才能在自己项目进行创建
-        ThrowUtils.throwIf(!appDo.getUserId().equals(
-                        loginUser.getId()) && loginUser.getUserRole().equals(UserRole.ADMIN.getValue())
-                , ErrorCode.NO_AUTH_ERROR,
-                "无权限生成代码");
+        boolean notOwner = !appDo.getUserId().equals(loginUser.getId());
+        boolean notAdmin = !UserRole.ADMIN.getValue().equals(loginUser.getUserRole());
+        ThrowUtils.throwIf(notOwner && notAdmin, ErrorCode.NO_AUTH_ERROR, "无权限生成代码");
         //获取生成的代码类型
         String codeGenType = appDo.getCodeGenType();
         ThrowUtils.throwIf(!StrUtil.isNotBlank(codeGenType),ErrorCode.NOT_FOUND_ERROR,"生成代码的类型不存在");
@@ -140,13 +142,29 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
                 })
                 .concatWith(Mono.just(ServerSentEvent.<String>builder().event("done").data("").build()))
                 .doOnComplete(() -> {
-                    Long resultAi = chatHistoryService.saveMessage(
-                            ChatHistoryMessageSaveRequest.builder()
-                                    .message(String.valueOf(aiMessage))
-                                    .messageType(ChatMessageTypeEnum.AI.getValue())
-                                    .appId(appId).build(), loginUser
+                    try {
+                        Long resultAi = chatHistoryService.saveMessage(
+                                ChatHistoryMessageSaveRequest.builder()
+                                        .message(String.valueOf(aiMessage))
+                                        .messageType(ChatMessageTypeEnum.AI.getValue())
+                                        .appId(appId).build(), loginUser
+                        );
+                        ThrowUtils.throwIf(resultAi < 0, ErrorCode.SYSTEM_ERROR, "ai信息存储失败");
+                    } catch (Exception e) {
+                        log.error("保存 AI 消息失败, appId={}, userId={}", appId, loginUser.getId(), e);
+                    }
+                })
+                .onErrorResume(error -> {
+                    // 客户端主动断开或网络 IO 问题，直接忽略避免再次触发 async dispatch
+                    if (error instanceof ClientAbortException || error instanceof java.io.IOException) {
+                        log.warn("客户端断开 SSE 连接, appId={}, userId={}", appId, loginUser.getId());
+                        return Flux.empty();
+                    }
+                    log.error("生成代码流异常, appId={}, userId={}", appId, loginUser.getId(), error);
+                    return Flux.just(
+                            ServerSentEvent.<String>builder().event("error").data(error.getMessage()).build(),
+                            ServerSentEvent.<String>builder().event("done").data("").build()
                     );
-                    ThrowUtils.throwIf(resultAi < 0, ErrorCode.SYSTEM_ERROR, "ai信息存储失败");
                 });
 
     }
