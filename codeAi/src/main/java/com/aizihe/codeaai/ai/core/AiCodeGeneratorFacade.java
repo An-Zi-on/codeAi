@@ -50,35 +50,69 @@ public class AiCodeGeneratorFacade {
     public Flux<String> generateAndeSaveHtmlCodeStream(String userMessage,Long appId){
         aiCodeGeneratorService =aiCodeGeneratorServiceFactory.getAiCodeGeneratorService(appId);
         Flux<String> result = aiCodeGeneratorService.generateSignalCode(userMessage);
+        // 使用线程安全的 StringBuilder
         StringBuilder stringBuilder = new StringBuilder();
-        //时时收集代码片段
-        return result.doOnNext(stringBuilder::append).doOnComplete(()->{
-            try {
-                String completeHtmlCode = stringBuilder.toString();
-                SingleFileGenerationResult singleFileGenerationResult = (SingleFileGenerationResult) singleCode.parseCode(completeHtmlCode);
-                File saveDir = CodeFileSaver.saveHtmlCodeResult(singleFileGenerationResult,appId);
-                System.out.println("保存成功,路径为:"+saveDir.getAbsolutePath());
-            }catch (Exception e){
-                System.out.println("文件保存失败"+e.getMessage());
-            }
-        });
+        //时时收集代码片段，使用同步块确保线程安全
+        return result
+                .doOnNext(chunk -> {
+                    if (chunk != null) {
+                        synchronized (stringBuilder) {
+                            stringBuilder.append(chunk);
+                        }
+                    }
+                })
+                .doOnTerminate(() -> {
+                    // 无论是正常完成还是异常终止，都尝试保存
+                    synchronized (stringBuilder) {
+                        try {
+                            String completeHtmlCode = stringBuilder.toString();
+                            if (completeHtmlCode != null && !completeHtmlCode.trim().isEmpty()) {
+                                SingleFileGenerationResult singleFileGenerationResult = (SingleFileGenerationResult) singleCode.parseCode(completeHtmlCode);
+                                File saveDir = CodeFileSaver.saveHtmlCodeResult(singleFileGenerationResult,appId);
+                                System.out.println("保存成功,路径为:"+saveDir.getAbsolutePath());
+                            } else {
+                                System.out.println("警告: HTML 代码内容为空，未保存文件");
+                            }
+                        } catch (Exception e){
+                            System.out.println("文件保存失败: " + e.getMessage());
+                            e.printStackTrace();
+                        }
+                    }
+                });
     }
 
     public Flux<String> generateAndSaveMultiCodeStream(String userMessage,Long appId){
         //工厂类中取数据
          aiCodeGeneratorService =aiCodeGeneratorServiceFactory.getAiCodeGeneratorService(appId);
         Flux<String>  result = aiCodeGeneratorService.generateMultiCode(userMessage);
+        // 使用线程安全的 StringBuilder
         StringBuilder stringBuilder = new StringBuilder();
-        return result.doOnNext(stringBuilder::append).doOnComplete(()->{
-            try {
-                String completeMultiCode = stringBuilder.toString();
-                MultiFileWebsiteResult multiFileWebsiteResult = (MultiFileWebsiteResult) multiFileCode.parseCode(completeMultiCode);
-                File file = CodeFileSaver.saveMultiFileCodeResult(multiFileWebsiteResult,appId);
-                System.out.println("保存文件成功,保存路径为:"+file.getAbsolutePath());
-            }catch (Exception e){
-                System.out.println("保存文件失败"+e.getMessage());
-            }
-        });
+        return result
+                .doOnNext(chunk -> {
+                    if (chunk != null) {
+                        synchronized (stringBuilder) {
+                            stringBuilder.append(chunk);
+                        }
+                    }
+                })
+                .doOnTerminate(() -> {
+                    // 无论是正常完成还是异常终止，都尝试保存
+                    synchronized (stringBuilder) {
+                        try {
+                            String completeMultiCode = stringBuilder.toString();
+                            if (completeMultiCode != null && !completeMultiCode.trim().isEmpty()) {
+                                MultiFileWebsiteResult multiFileWebsiteResult = (MultiFileWebsiteResult) multiFileCode.parseCode(completeMultiCode);
+                                File file = CodeFileSaver.saveMultiFileCodeResult(multiFileWebsiteResult,appId);
+                                System.out.println("保存文件成功,保存路径为:"+file.getAbsolutePath());
+                            } else {
+                                System.out.println("警告: 多文件代码内容为空，未保存文件");
+                            }
+                        }catch (Exception e){
+                            System.out.println("保存文件失败: " + e.getMessage());
+                            e.printStackTrace();
+                        }
+                    }
+                });
     }
 
     //    /**
