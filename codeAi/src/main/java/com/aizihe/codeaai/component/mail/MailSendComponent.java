@@ -1,6 +1,6 @@
 package com.aizihe.codeaai.component.mail;
 
-import com.cxssboot.domain.request.MailSendRequest;
+import com.aizihe.codeaai.domain.request.check.MailSendRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

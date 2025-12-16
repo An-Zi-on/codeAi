@@ -1,7 +1,7 @@
 package com.aizihe.codeaai.component.mail;
 
-import com.cxssboot.common.exception.BizException;
-import com.cxssboot.domain.request.MailSendRequest;
+
+import com.aizihe.codeaai.domain.request.check.MailSendRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,8 +9,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
+
 
 
 @Component(value = "springBootMailComponent")

@@ -16,3 +16,22 @@ langchain4j:
       max-tokens: 8192
       log-requests: true
       log-responses: true
+tencent:
+  cloud:
+    secret-id:
+    secret-key:
+    captcha:
+      app-id:                       # 替换为你的 CAPTCHA AppId
+      region:  # 腾讯云 CAPTCHA 推荐地域
+    email:
+      region:
+      from-email:   # 必须已在腾讯云 SES 控制台验证
+      template-id:
+sms:
+  tencent:
+    secret-id:
+    secret-key:
+    sdk-app-id:      # 替换为你自己的 SmsSdkAppId
+    sign-name:          # 已审核通过的签名
+    template-id:        # 已审核通过的模板ID（验证码类）
+    region:           # 可选，默认广州
