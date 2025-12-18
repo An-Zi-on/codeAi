@@ -6,9 +6,9 @@ import com.aizihe.codeaai.ai.model.SingleFileGenerationResult;
 /**
  *  解析Html代码
  */
-public class ParseHtmlCode implements CodeParser{
+public class ParseHtmlCode implements CodeParser<SingleFileGenerationResult>{
     @Override
-    public Object parseCode(String codeContent) {
+    public SingleFileGenerationResult parseCode(String codeContent) {
         SingleFileGenerationResult result = new SingleFileGenerationResult();
         // 提取 HTML 代码
         String htmlCode = CodeParserUtil.extractHtmlCode(codeContent);

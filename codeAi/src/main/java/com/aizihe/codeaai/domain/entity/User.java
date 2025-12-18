@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 import java.io.Serial;
 
 import com.mybatisflex.core.keygen.KeyGenerators;
-import com.mybatisflex.core.keygen.impl.SnowFlakeIDKeyGenerator;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

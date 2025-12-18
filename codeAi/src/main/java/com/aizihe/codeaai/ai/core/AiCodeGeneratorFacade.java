@@ -30,8 +30,8 @@ public class AiCodeGeneratorFacade {
     @Resource
     AiCodeGeneratorServiceFactory aiCodeGeneratorServiceFactory;
 
-    public static final CodeParser singleCode = new ParseHtmlCode();
-    public static final CodeParser multiFileCode = new ParseMultiFileCode();
+    public static final CodeParser<SingleFileGenerationResult> singleCode = new ParseHtmlCode();
+    public static final CodeParser<MultiFileWebsiteResult> multiFileCode = new ParseMultiFileCode();
 
     public Flux<String>  generateCode(String message, CodeGenTypeEnum codeGenTypeEnum,Long appId){
         ThrowUtils.throwIf(codeGenTypeEnum == null,ErrorCode.PARAMS_ERROR,"生成类型不存在");
@@ -67,7 +67,7 @@ public class AiCodeGeneratorFacade {
                         try {
                             String completeHtmlCode = stringBuilder.toString();
                             if (completeHtmlCode != null && !completeHtmlCode.trim().isEmpty()) {
-                                SingleFileGenerationResult singleFileGenerationResult = (SingleFileGenerationResult) singleCode.parseCode(completeHtmlCode);
+                                SingleFileGenerationResult singleFileGenerationResult = singleCode.parseCode(completeHtmlCode);
                                 File saveDir = CodeFileSaver.saveHtmlCodeResult(singleFileGenerationResult,appId);
                                 System.out.println("保存成功,路径为:"+saveDir.getAbsolutePath());
                             } else {
@@ -101,7 +101,7 @@ public class AiCodeGeneratorFacade {
                         try {
                             String completeMultiCode = stringBuilder.toString();
                             if (completeMultiCode != null && !completeMultiCode.trim().isEmpty()) {
-                                MultiFileWebsiteResult multiFileWebsiteResult = (MultiFileWebsiteResult) multiFileCode.parseCode(completeMultiCode);
+                                MultiFileWebsiteResult multiFileWebsiteResult = multiFileCode.parseCode(completeMultiCode);
                                 File file = CodeFileSaver.saveMultiFileCodeResult(multiFileWebsiteResult,appId);
                                 System.out.println("保存文件成功,保存路径为:"+file.getAbsolutePath());
                             } else {

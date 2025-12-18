@@ -1,59 +1,29 @@
 package com.aizihe.codeaai.component.phone;
 
-import cn.hutool.json.JSONObject;
-import com.alibaba.fastjson.JSON;
-import com.cxssboot.common.enums.BizCodeEnum;
-import com.cxssboot.common.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 /**
- * 阿里云短信发送组件
+ * 阿里云短信发送组件（简化版本，仅日志输出，可根据需要接入真实 SDK）
  * @author 93564
  */
-//@Component(value = "aliyunSmsComponent")
+@Component(value = "aliyunSmsComponent")
 @Slf4j
-public class AliyunSmsComponent extends com.cxssboot.base.component.sms.BaseSmsComponent {
+public class AliyunSmsComponent extends BaseSmsComponent {
 
     /**
      * 短信签名
      */
-    @Value("${sms.verify-code.sign-name}")
+    @Value("${sms.verify-code.sign-name:默认签名}")
     private String signName;
-    
+
     /**
      * 短信模板编号
      */
-    @Value("${sms.verify-code.template-code}")
+    @Value("${sms.verify-code.-code:defautemplateltTemplate}")
     private String templateCode;
-    
-    /**
-     * 阿里云ak
-     */
-    @Value("${sms.send.ak}")
-    private String ak;
-    
-    /**
-     * 阿里云sk
-     */
-    @Value("${sms.send.sk}")
-    private String sk;
 
-    private Client createSmsClient() {
-        Config config = new Config()
-                // 您的AccessKey ID
-                .setAccessKeyId(ak)
-                // 您的AccessKey Secret
-                .setAccessKeySecret(sk);
-        // 访问的域名
-        config.endpoint = "dysmsapi.aliyuncs.com";
-        try {
-            return new Client(config);
-        } catch (Exception e) {
-            throw new BizException(BizCodeEnum.SYSTEM_ERROR.getCode(), "初始化短信发送客户端异常");
-        }
-    }
-    
     /**
      * 发送短信
      *
@@ -62,26 +32,8 @@ public class AliyunSmsComponent extends com.cxssboot.base.component.sms.BaseSmsC
      */
     @Override
     protected void doSendVerifyCode(String userPhone, String code) {
-        SendSmsRequest sendSmsRequest = new SendSmsRequest().setPhoneNumbers(userPhone).setSignName(signName)
-                .setTemplateCode(templateCode).setTemplateParam(this.generateSmsParam(code).toJSONString());
-        try {
-            log.info("发送短信验证码请求入参={}", JSON.toJSONString(sendSmsRequest));
-            SendSmsResponse sendSmsResponse = createSmsClient().sendSms(sendSmsRequest);
-            log.info("发送短信验证码结果={}", JSON.toJSONString(sendSmsResponse));
-        } catch (Exception e) {
-            log.warn("阿里云发送短信验证码异常", e);
-        }
-    }
-    
-    /**
-     * 生成发送短信的参数
-     *
-     * @param param 参数可变长数组
-     * @return JSON字符串
-     */
-    private JSONObject generateSmsParam(String... param) {
-        JSONObject paramJson = new JSONObject();
-        paramJson.put("code", param[0]);
-        return paramJson;
+        // 这里先不接入真实阿里云 SDK，仅做日志输出，避免引入额外依赖导致编译错误
+        log.info("【模拟发送阿里云短信】phone={}, signName={}, templateCode={}, code={}",
+                userPhone, signName, templateCode, code);
     }
 }

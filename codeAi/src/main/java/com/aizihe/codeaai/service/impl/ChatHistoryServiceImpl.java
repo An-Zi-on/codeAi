@@ -8,8 +8,6 @@ import com.aizihe.codeaai.domain.VO.UserVO;
 import com.aizihe.codeaai.domain.common.ByIdRequest;
 import com.aizihe.codeaai.domain.entity.App;
 import com.aizihe.codeaai.domain.entity.ChatHistory;
-import com.aizihe.codeaai.domain.entity.User;
-import com.aizihe.codeaai.domain.request.chathistory.ChatHistoryAdminPageRequest;
 import com.aizihe.codeaai.domain.request.chathistory.ChatHistoryMessageSaveRequest;
 import com.aizihe.codeaai.domain.request.chathistory.ChatHistoryQueryRequest;
 import com.aizihe.codeaai.enums.ChatMessageTypeEnum;
@@ -26,7 +24,6 @@ import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import jakarta.annotation.Resource;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 

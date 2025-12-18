@@ -2,8 +2,6 @@ package com.aizihe.codeaai.ai.model.enums;
 
 import lombok.Getter;
 
-import java.util.Arrays;
-
 /**
  * @param
  * @return

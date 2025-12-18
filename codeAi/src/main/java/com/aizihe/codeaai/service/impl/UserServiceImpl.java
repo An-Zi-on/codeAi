@@ -2,7 +2,6 @@ package com.aizihe.codeaai.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.http.server.HttpServerRequest;
 import cn.hutool.json.JSONUtil;
 import com.aizihe.codeaai.ThrowUtils.CryptoUtils;
 import com.aizihe.codeaai.ThrowUtils.RedisService;
@@ -21,11 +20,9 @@ import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.concurrent.TimeUnit;
 
 import static com.aizihe.codeaai.domain.common.Constants.USER_CACHE;
 import static com.aizihe.codeaai.domain.common.Constants.USER_SALT;

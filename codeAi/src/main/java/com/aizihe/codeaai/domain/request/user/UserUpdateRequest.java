@@ -1,8 +1,6 @@
 package com.aizihe.codeaai.domain.request.user;
 
 import com.mybatisflex.annotation.Column;
-import com.mybatisflex.annotation.Id;
-import com.mybatisflex.annotation.KeyType;
 import lombok.Data;
 
 import java.io.Serial;

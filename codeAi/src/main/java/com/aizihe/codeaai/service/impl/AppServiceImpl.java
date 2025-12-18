@@ -134,8 +134,6 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         Flux<String> stringFlux = aiCodeGeneratorFacade.generateCode(message, codeGenTypeEnum, appId);
         // 使用线程安全的 StringBuilder 收集完整内容
         StringBuilder aiMessage = new StringBuilder();
-        // 使用 AtomicReference 确保线程安全
-        java.util.concurrent.atomic.AtomicReference<String> completeMessage = new java.util.concurrent.atomic.AtomicReference<>();
         
         return stringFlux
                 // 收集每个数据块
@@ -158,7 +156,6 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
                     synchronized (aiMessage) {
                         String messageContent = aiMessage.toString();
                         if (StrUtil.isNotBlank(messageContent)) {
-                            completeMessage.set(messageContent);
                             try {
                                 Long resultAi = chatHistoryService.saveMessage(
                                         ChatHistoryMessageSaveRequest.builder()

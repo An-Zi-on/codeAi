@@ -1,8 +1,8 @@
 package com.aizihe.codeaai.domain.request.check;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
-import javax.validation.constraints.NotBlank;
 
 /**
  * 校验短信验证码请求参数

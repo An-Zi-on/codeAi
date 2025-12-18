@@ -9,14 +9,14 @@ import com.tencentcloudapi.common.exception.TencentCloudSDKException;
 public class TestCaptcha {
 
     // ====== 请在这里填写你的实际参数 ======
-    private static final String SECRET_ID = "AKID66uWv8FTaVIuKYaP1RgnneMvKZgbN0Uo";
-    private static final String SECRET_KEY = "CE6oTyISStPp7GGKQRHzAE5kkdOk04wf";
-    private static final String CAPTCHA_APP_ID = "199015789";
+    private static final String SECRET_ID = "";
+    private static final String SECRET_KEY = "";
+    private static final String CAPTCHA_APP_ID = "";
 
     // 从前端获取（测试时可手动填一个真实的 ticket/randstr）
-    private static final String TICKET = "tr03LGSyShKO0b7m3s_dzWb0vj5TdHbw7A9j-4v8VYBO3XTEkFvjaEtof2KzLQ1WiVXCJPKH8GylqsQbunuZkNktaO65MERsGyXmGSvy-9mfc-_YbB_XN7TDEiZPmJ8S7BhQMNwvyK26nzo*"; // 替换为真实 ticket
-    private static final String RANDSTR = "@rTr";     // 替换为真实 randstr
-    private static final String USER_IP = "8.8.8.8";   // 测试可用 8.8.8.8，正式需用户真实 IP
+    private static final String TICKET = ""; // 替换为真实 ticket
+    private static final String RANDSTR = "";     // 替换为真实 randstr
+    private static final String USER_IP = "";   // 测试可用 8.8.8.8，正式需用户真实 IP
     // ===================================
 
     public static void main(String[] args) {

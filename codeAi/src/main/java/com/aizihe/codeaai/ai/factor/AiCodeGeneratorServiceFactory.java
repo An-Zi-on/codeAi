@@ -2,7 +2,6 @@ package com.aizihe.codeaai.ai.factor;
 
 
 import com.aizihe.codeaai.ai.service.AiCodeGeneratorService;
-import com.aizihe.codeaai.domain.entity.ChatHistory;
 import com.aizihe.codeaai.service.ChatHistoryService;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;

@@ -1,6 +1,7 @@
 package com.aizihe.codeaai.component.mail;
 
-import com.cxssboot.domain.request.MailSendRequest;
+
+import com.aizihe.codeaai.domain.request.check.MailSendRequest;
 
 /**
  * 邮箱发送组件

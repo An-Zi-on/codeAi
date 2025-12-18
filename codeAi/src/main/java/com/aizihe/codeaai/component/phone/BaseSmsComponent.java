@@ -1,11 +1,13 @@
 package com.aizihe.codeaai.component.phone;
 
 
-import com.cxssboot.common.constant.CacheKey;
-import com.cxssboot.common.enums.BizCodeEnum;
-import com.cxssboot.common.exception.BizException;
-import com.cxssboot.component.CaptchaComponent;
-import com.cxssboot.service.RedisService;
+import com.aizihe.codeaai.ThrowUtils.RedisService;
+import com.aizihe.codeaai.constant.CacheKey;
+import com.aizihe.codeaai.constant.VerifyCodeExpireConstant;
+import com.aizihe.codeaai.domain.request.check.SmsCheckRequest;
+import com.aizihe.codeaai.domain.request.check.SmsSendRequest;
+import com.aizihe.codeaai.exception.BusinessException;
+import com.aizihe.codeaai.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +19,7 @@ import java.util.concurrent.TimeUnit;
  * @author 93564
  */
 @Slf4j
-public abstract class BaseSmsComponent implements com.cxssboot.base.component.sms.SmsComponent {
+public abstract class BaseSmsComponent implements SmsComponent {
 
     /**
      * redis操作类
@@ -25,35 +27,24 @@ public abstract class BaseSmsComponent implements com.cxssboot.base.component.sm
     @Autowired
     private RedisService redisService;
 
-
-    @Autowired
-    private CaptchaComponent captchaComponent;
-    
     @Override
     public void sendVerifyCode(SmsSendRequest smsSendRequest) {
         // 因为是非登录态下发送短信验证码，方式被刷，要做限制
         // 校验图形验证码
 //        captchaComponent.validateCaptcha(smsSendRequest.getKey(), smsSendRequest.getCode());
         // 在redis中获取验证码
-        String cacheKey = String.format(CacheKey.SMS_VERIFY_CODE, smsSendRequest.getSource(), smsSendRequest.getUserPhone());
+        String cacheKey = String.format(CacheKey.SMS_VERIFY_CODE, smsSendRequest.getUserPhone());
         // 缓存 验证码_时间戳 000000_xxxxxxxxxxxxx
         String cacheCode = redisService.getCacheObject(cacheKey);
         if (StringUtils.isNotEmpty(cacheCode)) {
-            log.info("获取之前发送的验证码={}", cacheCode);
-            // 获取验证码生成的时间戳
-            long ttl = Long.parseLong(cacheCode.split("_")[1]);
-            // 剩余的时间
-            long remainingTime = CommonUtil.getCurrentTimestamp() - ttl;
-            if (remainingTime < (VerifyCodeExpireConstant.CODE_SEND_LIMIT)) {
-                log.info("验证码发送过于频繁，60s之内只能发送一次，距下一次发送还有{}ms", remainingTime);
-                throw new BizException(BizCodeEnum.SMS_CODE_LIMITED);
-            }
+            //todo 时间计算
+           throw  new BusinessException(ErrorCode.PARAMS_ERROR,"请勿重复申请");
         }
 //        String code = CommonUtil.getRandomCode(6);
         String code = "999999";
-        String value = code + "_" + CommonUtil.getCurrentTimestamp();
+        String value = code + "_" + System.currentTimeMillis();
         // 将验证码保存到redis中
-        redisService.setCacheObject(cacheKey, value, VerifyCodeExpireConstant.CODE_EXPIRE, TimeUnit.MILLISECONDS);
+        redisService.setCacheObject(cacheKey, value, VerifyCodeExpireConstant.CAPTCHA_VERIFY_CODE_EXPIRE_SECONDS, TimeUnit.MILLISECONDS);
 //        doSendVerifyCode(smsSendRequest.getUserPhone(),code);
     }
 
@@ -73,12 +64,12 @@ public abstract class BaseSmsComponent implements com.cxssboot.base.component.sm
     @Override
     public void checkSmsVerifyCode(SmsCheckRequest smsCheckRequest) {
         // 在redis中获取验证码
-        String cacheKey = String.format(CacheKey.SMS_VERIFY_CODE, smsCheckRequest.getSource(), smsCheckRequest.getUserPhone());
+        String cacheKey = String.format(CacheKey.SMS_VERIFY_CODE, smsCheckRequest.getUserPhone());
         // 获取验证码缓存信息 验证码_时间戳
         String cacheCode = redisService.getCacheObject(cacheKey);
         // 校验手机验证码
-        if (null == cacheCode || cacheCode.split("_").length != 2 || !cacheCode.split("_")[0].equals(smsCheckRequest.getVerifyCode())) {
-            throw new BizException(BizCodeEnum.VERIFY_CODE_ERROR);
+        if (null == cacheCode || cacheCode.split("_").length != 2 || !cacheCode.split("_")[0].equals(smsCheckRequest.getCode())) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
         }
         // 删除redis验证码
         redisService.deleteObject(cacheKey);

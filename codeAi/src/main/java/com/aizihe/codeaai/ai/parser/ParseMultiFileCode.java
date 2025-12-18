@@ -8,9 +8,9 @@ import static com.aizihe.codeaai.ai.utils.CodeParserUtil.HTML_CODE_PATTERN;
 /**
  *  解析多文件代码
  */
-public class ParseMultiFileCode implements CodeParser{
+public class ParseMultiFileCode implements CodeParser<MultiFileWebsiteResult>{
     @Override
-    public Object parseCode(String codeContent) {
+    public MultiFileWebsiteResult parseCode(String codeContent) {
         MultiFileWebsiteResult result = new MultiFileWebsiteResult();
         // 提取各类代码
         String htmlCode = CodeParserUtil.extractCodeByPattern(codeContent, HTML_CODE_PATTERN);
