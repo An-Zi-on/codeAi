@@ -2,12 +2,12 @@ package com.aizihe.codeaai.component;
 
 import cn.hutool.core.util.StrUtil;
 import com.aizihe.codeaai.ThrowUtils.BaseResponse;
-import com.aizihe.codeaai.ThrowUtils.RedisService;
 import com.aizihe.codeaai.ThrowUtils.ResultUtils;
 import com.aizihe.codeaai.constant.CacheKey;
 import com.aizihe.codeaai.domain.request.check.CheckRequest;
 import com.aizihe.codeaai.exception.BusinessException;
 import com.aizihe.codeaai.exception.ErrorCode;
+import com.aizihe.codeaai.service.RedisService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Component;
 
@@ -54,4 +54,6 @@ public class BaseComponent {
             return ResultUtils.success("1"); // 验证码错误
         }
     }
+
+    //todo 设置登入态
 }

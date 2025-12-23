@@ -1,13 +1,13 @@
 package com.aizihe.codeaai.component.phone;
 
 
-import com.aizihe.codeaai.ThrowUtils.RedisService;
 import com.aizihe.codeaai.constant.CacheKey;
 import com.aizihe.codeaai.constant.VerifyCodeExpireConstant;
 import com.aizihe.codeaai.domain.request.check.SmsCheckRequest;
 import com.aizihe.codeaai.domain.request.check.SmsSendRequest;
 import com.aizihe.codeaai.exception.BusinessException;
 import com.aizihe.codeaai.exception.ErrorCode;
+import com.aizihe.codeaai.service.RedisService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,6 +1,6 @@
 package com.aizihe.codeaai.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.annotation.Resource;
 import org.springframework.data.redis.core.BoundSetOperations;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -15,9 +15,8 @@ import java.util.concurrent.TimeUnit;
  **/
 @SuppressWarnings(value = { "unchecked", "rawtypes" })
 @Component
-public class RedisService
-{
-    @Autowired
+public class RedisService {
+    @Resource
     public RedisTemplate redisTemplate;
 
     /**

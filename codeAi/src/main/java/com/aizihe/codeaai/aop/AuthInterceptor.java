@@ -1,12 +1,12 @@
 package com.aizihe.codeaai.aop;
 
 import cn.hutool.json.JSONUtil;
-import com.aizihe.codeaai.ThrowUtils.RedisService;
 import com.aizihe.codeaai.ThrowUtils.ThrowUtils;
 import com.aizihe.codeaai.annotation.MustRole;
 import com.aizihe.codeaai.domain.VO.UserVO;
 import com.aizihe.codeaai.domain.common.Constants;
 import com.aizihe.codeaai.exception.ErrorCode;
+import com.aizihe.codeaai.service.RedisService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.JoinPoint;
