@@ -15,7 +15,7 @@ import java.sql.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Description("单文件生成结果类")
-public class SingleFileGenerationResult {
+public class SingleFileGenerateResult {
     /**
      * 完整的、自包含的 HTML 文件内容。
      * 包含内联 <style> 和 <script>，无外部依赖。

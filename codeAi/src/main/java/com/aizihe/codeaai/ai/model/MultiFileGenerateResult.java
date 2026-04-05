@@ -12,7 +12,7 @@ import java.sql.Date;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MultiFileWebsiteResult {
+public class MultiFileGenerateResult {
     /**
      * index.html 文件内容
      * - 仅包含 HTML 结构

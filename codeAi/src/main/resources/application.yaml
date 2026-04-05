@@ -27,7 +27,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/an_ai_code
     username: root
-    password: root
+    password: 20030517
     driver-class-name: com.mysql.cj.jdbc.Driver
 
 server:

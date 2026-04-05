@@ -1,4 +1,4 @@
-package com.aizihe.codeaai.ai.model.enums;
+package com.aizihe.codeaai.enums;
 
 import lombok.Getter;
 

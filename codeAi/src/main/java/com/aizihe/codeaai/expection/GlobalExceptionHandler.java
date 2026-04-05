@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 @Slf4j
 /**
- * 全局遗产处理器
+ * 全局异常处理器
  */
 public class GlobalExceptionHandler {
 

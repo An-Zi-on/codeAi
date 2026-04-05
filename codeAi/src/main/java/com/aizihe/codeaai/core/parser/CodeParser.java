@@ -1,4 +1,4 @@
-package com.aizihe.codeaai.ai.parser;
+package com.aizihe.codeaai.core.parser;
 
 
 /**

@@ -1,18 +1,10 @@
 package com.aizihe.codeaai.ai.service;
 
-import com.aizihe.codeaai.ai.core.AiCodeGeneratorFacade;
-import com.aizihe.codeaai.ai.model.SingleFileGenerationResult;
-import com.aizihe.codeaai.ai.model.enums.CodeGenTypeEnum;
+import com.aizihe.codeaai.core.AiCodeGeneratorFacade;
 import jakarta.annotation.Resource;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import reactor.core.publisher.Flux;
-
-import java.io.File;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 class AiCodeGeneratorServiceTest {

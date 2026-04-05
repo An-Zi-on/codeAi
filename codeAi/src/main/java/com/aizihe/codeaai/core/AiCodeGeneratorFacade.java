@@ -1,13 +1,16 @@
-package com.aizihe.codeaai.ai.core;
+package com.aizihe.codeaai.core;
 
 import com.aizihe.codeaai.ThrowUtils.ThrowUtils;
 import com.aizihe.codeaai.ai.factor.AiCodeGeneratorServiceFactory;
-import com.aizihe.codeaai.ai.model.MultiFileWebsiteResult;
-import com.aizihe.codeaai.ai.model.SingleFileGenerationResult;
-import com.aizihe.codeaai.ai.model.enums.CodeGenTypeEnum;
-import com.aizihe.codeaai.ai.parser.CodeParser;
-import com.aizihe.codeaai.ai.parser.ParseHtmlCode;
-import com.aizihe.codeaai.ai.parser.ParseMultiFileCode;
+import com.aizihe.codeaai.ai.model.MultiFileGenerateResult;
+import com.aizihe.codeaai.ai.model.SingleFileGenerateResult;
+import com.aizihe.codeaai.core.parser.CodeParserExecutor;
+import com.aizihe.codeaai.core.save.CodeSaveExecutor;
+import com.aizihe.codeaai.core.save.HtmlSaveFileTemplate;
+import com.aizihe.codeaai.enums.CodeGenTypeEnum;
+import com.aizihe.codeaai.core.parser.CodeParser;
+import com.aizihe.codeaai.core.parser.ParseHtmlCode;
+import com.aizihe.codeaai.core.parser.ParseMultiFileCode;
 import com.aizihe.codeaai.ai.service.AiCodeGeneratorService;
 import com.aizihe.codeaai.ai.utils.CodeFileSaver;
 import com.aizihe.codeaai.exception.BusinessException;
@@ -25,14 +28,22 @@ import java.io.File;
 
 @Service
 public class AiCodeGeneratorFacade {
+
     AiCodeGeneratorService aiCodeGeneratorService ;
 
     @Resource
     AiCodeGeneratorServiceFactory aiCodeGeneratorServiceFactory;
 
-    public static final CodeParser<SingleFileGenerationResult> singleCode = new ParseHtmlCode();
-    public static final CodeParser<MultiFileWebsiteResult> multiFileCode = new ParseMultiFileCode();
+    public static final CodeParser<SingleFileGenerateResult> singleCode = new ParseHtmlCode();
+    public static final CodeParser<MultiFileGenerateResult> multiFileCode = new ParseMultiFileCode();
 
+    /**
+     * 同一生成入口：根据类型生成并保存代码
+     * @param message
+     * @param codeGenTypeEnum
+     * @param appId
+     * @return
+     */
     public Flux<String>  generateCode(String message, CodeGenTypeEnum codeGenTypeEnum,Long appId){
         ThrowUtils.throwIf(codeGenTypeEnum == null,ErrorCode.PARAMS_ERROR,"生成类型不存在");
         return  switch (codeGenTypeEnum) {
@@ -47,7 +58,7 @@ public class AiCodeGeneratorFacade {
 
 
 
-    public Flux<String> generateAndeSaveHtmlCodeStream(String userMessage,Long appId){
+    private Flux<String> generateAndeSaveHtmlCodeStream(String userMessage,Long appId){
         aiCodeGeneratorService =aiCodeGeneratorServiceFactory.getAiCodeGeneratorService(appId);
         Flux<String> result = aiCodeGeneratorService.generateSignalCode(userMessage);
         // 使用线程安全的 StringBuilder
@@ -55,6 +66,7 @@ public class AiCodeGeneratorFacade {
         //时时收集代码片段，使用同步块确保线程安全
         return result
                 .doOnNext(chunk -> {
+                    //时时收集代码块
                     if (chunk != null) {
                         synchronized (stringBuilder) {
                             stringBuilder.append(chunk);
@@ -66,10 +78,10 @@ public class AiCodeGeneratorFacade {
                     synchronized (stringBuilder) {
                         try {
                             String completeHtmlCode = stringBuilder.toString();
-                            if (completeHtmlCode != null && !completeHtmlCode.trim().isEmpty()) {
-                                SingleFileGenerationResult singleFileGenerationResult = singleCode.parseCode(completeHtmlCode);
-                                File saveDir = CodeFileSaver.saveHtmlCodeResult(singleFileGenerationResult,appId);
-                                System.out.println("保存成功,路径为:"+saveDir.getAbsolutePath());
+                            if (!completeHtmlCode.trim().isEmpty()) {
+                                Object object = CodeParserExecutor.parse(completeHtmlCode,CodeGenTypeEnum.GEN_TYPE_HTML);
+                                File file = CodeSaveExecutor.execute(object, CodeGenTypeEnum.GEN_TYPE_HTML);
+                                System.out.println("保存成功,路径为:"+file.getAbsolutePath());
                             } else {
                                 System.out.println("警告: HTML 代码内容为空，未保存文件");
                             }
@@ -81,7 +93,7 @@ public class AiCodeGeneratorFacade {
                 });
     }
 
-    public Flux<String> generateAndSaveMultiCodeStream(String userMessage,Long appId){
+    private Flux<String> generateAndSaveMultiCodeStream(String userMessage,Long appId){
         //工厂类中取数据
          aiCodeGeneratorService =aiCodeGeneratorServiceFactory.getAiCodeGeneratorService(appId);
         Flux<String>  result = aiCodeGeneratorService.generateMultiCode(userMessage);
@@ -100,9 +112,9 @@ public class AiCodeGeneratorFacade {
                     synchronized (stringBuilder) {
                         try {
                             String completeMultiCode = stringBuilder.toString();
-                            if (completeMultiCode != null && !completeMultiCode.trim().isEmpty()) {
-                                MultiFileWebsiteResult multiFileWebsiteResult = multiFileCode.parseCode(completeMultiCode);
-                                File file = CodeFileSaver.saveMultiFileCodeResult(multiFileWebsiteResult,appId);
+                            if (!completeMultiCode.trim().isEmpty()) {
+                                Object object = CodeParserExecutor.parse(completeMultiCode,CodeGenTypeEnum.GEN_MULTI_FILE);
+                                File file = CodeSaveExecutor.execute(object, CodeGenTypeEnum.GEN_MULTI_FILE);
                                 System.out.println("保存文件成功,保存路径为:"+file.getAbsolutePath());
                             } else {
                                 System.out.println("警告: 多文件代码内容为空，未保存文件");
@@ -121,7 +133,7 @@ public class AiCodeGeneratorFacade {
 //     * @return 生成的文件
 //     */
 //    public  File  generateSingleCode(String message){
-//        SingleFileGenerationResult result = aiCodeGeneratorService.generateSignalCode(message);
+//        SingleFileGenerateResult result = aiCodeGeneratorService.generateSignalCode(message);
 //        return CodeFileSaver.saveHtmlCodeResult(result);
 //    }
 //

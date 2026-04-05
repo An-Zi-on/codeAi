@@ -1,6 +1,6 @@
-package com.aizihe.codeaai.ai.parser;
+package com.aizihe.codeaai.core.parser;
 
-import com.aizihe.codeaai.ai.model.MultiFileWebsiteResult;
+import com.aizihe.codeaai.ai.model.MultiFileGenerateResult;
 import com.aizihe.codeaai.ai.utils.CodeParserUtil;
 
 import static com.aizihe.codeaai.ai.utils.CodeParserUtil.HTML_CODE_PATTERN;
@@ -8,10 +8,10 @@ import static com.aizihe.codeaai.ai.utils.CodeParserUtil.HTML_CODE_PATTERN;
 /**
  *  解析多文件代码
  */
-public class ParseMultiFileCode implements CodeParser<MultiFileWebsiteResult>{
+public class ParseMultiFileCode implements CodeParser<MultiFileGenerateResult>{
     @Override
-    public MultiFileWebsiteResult parseCode(String codeContent) {
-        MultiFileWebsiteResult result = new MultiFileWebsiteResult();
+    public MultiFileGenerateResult parseCode(String codeContent) {
+        MultiFileGenerateResult result = new MultiFileGenerateResult();
         // 提取各类代码
         String htmlCode = CodeParserUtil.extractCodeByPattern(codeContent, HTML_CODE_PATTERN);
         String cssCode = CodeParserUtil.extractCodeByPattern(codeContent,CodeParserUtil.CSS_CODE_PATTERN);

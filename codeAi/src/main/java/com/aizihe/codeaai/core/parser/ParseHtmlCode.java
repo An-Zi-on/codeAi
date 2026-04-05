@@ -1,15 +1,15 @@
-package com.aizihe.codeaai.ai.parser;
+package com.aizihe.codeaai.core.parser;
 
 import com.aizihe.codeaai.ai.utils.CodeParserUtil;
-import com.aizihe.codeaai.ai.model.SingleFileGenerationResult;
+import com.aizihe.codeaai.ai.model.SingleFileGenerateResult;
 
 /**
  *  解析Html代码
  */
-public class ParseHtmlCode implements CodeParser<SingleFileGenerationResult>{
+public class ParseHtmlCode implements CodeParser<SingleFileGenerateResult>{
     @Override
-    public SingleFileGenerationResult parseCode(String codeContent) {
-        SingleFileGenerationResult result = new SingleFileGenerationResult();
+    public SingleFileGenerateResult parseCode(String codeContent) {
+        SingleFileGenerateResult result = new SingleFileGenerateResult();
         // 提取 HTML 代码
         String htmlCode = CodeParserUtil.extractHtmlCode(codeContent);
         if (htmlCode != null && !htmlCode.trim().isEmpty()) {
