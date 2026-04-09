@@ -1,4 +1,4 @@
-package com.aizihe.codeaai.ai.configs;
+package com.aizihe.codeaai.config;
 
 import dev.langchain4j.community.store.memory.chat.redis.RedisChatMemoryStore;
 import lombok.Data;
@@ -27,7 +27,6 @@ public class RedisChatMemoryStoreConfig {
         return RedisChatMemoryStore.builder()
                 .host(host)
                 .port(port)
-                .password(password)
                 .ttl(ttl)
                 .build();
     }

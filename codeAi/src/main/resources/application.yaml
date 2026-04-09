@@ -1,7 +1,6 @@
 spring:
   application:
     name: codeAi
-
   data:
     redis:
       host: 127.0.0.1

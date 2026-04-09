@@ -1,7 +1,6 @@
 package com.aizihe.codeaai.core.save;
 
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.aizihe.codeaai.enums.CodeGenTypeEnum;
 import com.aizihe.codeaai.exception.BusinessException;
@@ -15,13 +14,13 @@ public abstract class CodeSaveFileTemplate <T> {
     private static final String FILE_SAVE_ROOT_DIR = System.getProperty("user.dir") + File.separator+"tmp"+File.separator+"code_output";
 
 
-    public  final  File   execute(T result) {
+    public  final  File   execute(T result , Long appId) {
         //参数校验
         validate(result);
         //获取唯一路径
-        String uniqueDir = buildUniqueDir();
+        String uniqueDir = buildUniqueDir(appId);
         //保存文件交给子类自行实现
-        saveFile(result,uniqueDir);
+        saveFile(result,uniqueDir,appId);
         //返回文件路径
         return new File(uniqueDir);
     }
@@ -35,9 +34,9 @@ public abstract class CodeSaveFileTemplate <T> {
     /**
      * 构建唯一目录路径：tmp/code_output/bizType_雪花ID
      */
-    protected   String buildUniqueDir() {
+    protected   String buildUniqueDir(Long appId) {
         String bizType =  getFileType().getValue();
-        String uniqueDirName = StrUtil.format("{}_{}", bizType, IdUtil.getSnowflake());
+        String uniqueDirName = StrUtil.format("{}_{}", bizType, appId);
         //创建完整路径
         String dirPath = FILE_SAVE_ROOT_DIR + File.separator + uniqueDirName;
         FileUtil.mkdir(dirPath);
@@ -49,9 +48,8 @@ public abstract class CodeSaveFileTemplate <T> {
      *
      * @param result    解析后的结果
      * @param uniqueDir 文件路径
-     * @return
      */
-    protected abstract File saveFile(T result, String uniqueDir);
+    protected abstract void saveFile(T result, String uniqueDir, Long appId);
 
     /**
      * 获取文件类型

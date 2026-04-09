@@ -20,10 +20,10 @@ public class CodeSaveExecutor {
      * @param codeGenTypeEnum 解析文件类型
      * @return 解析后的代码
      */
-    public static File execute(Object content, CodeGenTypeEnum codeGenTypeEnum){
+    public static File execute(Object content, CodeGenTypeEnum codeGenTypeEnum,Long appId){
         return  switch (codeGenTypeEnum){
-            case GEN_MULTI_FILE -> HTML_SAVE_FILE_TEMPLATE.execute((SingleFileGenerateResult) content);
-            case GEN_TYPE_HTML -> MULTI_SAVE_FILE_TEMPLATE.execute((MultiFileGenerateResult) content);
+            case GEN_MULTI_FILE -> HTML_SAVE_FILE_TEMPLATE.execute((SingleFileGenerateResult) content,appId);
+            case GEN_TYPE_HTML -> MULTI_SAVE_FILE_TEMPLATE.execute((MultiFileGenerateResult) content,appId);
             default -> throw  new BusinessException(ErrorCode.SYSTEM_ERROR,"不支持改类型的代码解析");
         };
 

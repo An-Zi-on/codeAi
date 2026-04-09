@@ -1,6 +1,6 @@
 package com.aizihe.codeaai.core.parser;
 
-import com.aizihe.codeaai.ai.utils.CodeParserUtil;
+import com.aizihe.codeaai.utils.CodeParserUtil;
 import com.aizihe.codeaai.ai.model.SingleFileGenerateResult;
 
 /**

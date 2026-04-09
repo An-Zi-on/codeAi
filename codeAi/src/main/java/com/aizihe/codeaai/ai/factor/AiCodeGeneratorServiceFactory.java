@@ -34,6 +34,7 @@ public class AiCodeGeneratorServiceFactory {
     private ChatHistoryService chatHistoryService;
 
     /**
+     * caffeine 缓存AI实例服务
      * AI 服务实例缓存
      * 缓存策略：
      * - 最大缓存 1000 个实例
@@ -53,11 +54,12 @@ public class AiCodeGeneratorServiceFactory {
      * 根据 appId 获取服务（带缓存）
      */
     public AiCodeGeneratorService getAiCodeGeneratorService(long appId) {
+        // 缓存中有则 从缓存中获取  如果缓存中没有则在创建一个新的ai实例服务
         return serviceCache.get(appId, this::createAiCodeGeneratorService);
     }
 
     /**
-     * 创建新的AI 服务实例
+     * 根据appid 获取服务
      * @param appId
      * @return
      */

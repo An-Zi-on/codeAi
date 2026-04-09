@@ -1,4 +1,4 @@
-package com.aizihe.codeaai.ai.utils;
+package com.aizihe.codeaai.utils;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

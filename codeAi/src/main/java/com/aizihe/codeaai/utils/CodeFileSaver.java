@@ -1,4 +1,4 @@
-package com.aizihe.codeaai.ai.utils;
+package com.aizihe.codeaai.utils;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
