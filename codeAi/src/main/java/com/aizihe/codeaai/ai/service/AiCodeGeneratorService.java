@@ -1,5 +1,6 @@
 package com.aizihe.codeaai.ai.service;
 
+import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import reactor.core.publisher.Flux;
@@ -23,4 +24,9 @@ public interface AiCodeGeneratorService {
      */
     @SystemMessage(fromResource = "system-prompt/multi-file-prompt.txt")
     Flux<String> generateMultiCode(String userMessage);
+
+
+    @SystemMessage(fromResource = "system-prompt/vue-project.txt")
+    Flux<String> generateVueProjectCodeStream(@MemoryId long appId , @UserMessage String userMessage);
+
 }

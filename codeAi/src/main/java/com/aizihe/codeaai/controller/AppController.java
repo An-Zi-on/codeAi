@@ -50,7 +50,7 @@ public class AppController {
      * 用户生成代码
      */
     @GetMapping(value="/chat/gen/code",produces= MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ServerSentEvent<String>> generateCode(@RequestParam Long appId,
+    public Flux<String> generateCode(@RequestParam Long appId,
                                                       @RequestParam String message,
                                                       HttpServletRequest request
                                           ) {

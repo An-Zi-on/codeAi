@@ -9,7 +9,9 @@ import lombok.Getter;
 @Getter
 public enum CodeGenTypeEnum {
     GEN_MULTI_FILE("多文件","multi_file"),
-    GEN_TYPE_HTML("单文件","html");
+    GEN_TYPE_HTML("单文件","html"),
+    VUE_PROJECT("Vue 工程模式","vue_project")
+    ;
     private final String message;
     private final String value;
     CodeGenTypeEnum(String message ,String value){

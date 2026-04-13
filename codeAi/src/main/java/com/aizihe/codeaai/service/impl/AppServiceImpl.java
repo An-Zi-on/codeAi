@@ -6,10 +6,12 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.aizihe.codeaai.ThrowUtils.ThrowUtils;
 import com.aizihe.codeaai.ai.AiCodeGeneratorFacade;
+import com.aizihe.codeaai.core.handler.StreamHandlerExecutor;
 import com.aizihe.codeaai.domain.VO.UserVO;
 import com.aizihe.codeaai.domain.common.DeleteRequest;
 import com.aizihe.codeaai.domain.common.DeployConstant;
 import com.aizihe.codeaai.domain.entity.App;
+import com.aizihe.codeaai.domain.entity.User;
 import com.aizihe.codeaai.domain.request.app.AppAdminPageRequest;
 import com.aizihe.codeaai.domain.request.app.AppAdminUpdateRequest;
 import com.aizihe.codeaai.domain.request.app.AppCreateRequest;
@@ -61,6 +63,8 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     private AiCodeGeneratorFacade aiCodeGeneratorFacade;
     @Resource
     private ChatHistoryService chatHistoryService;
+    @Resource
+    private StreamHandlerExecutor executor;
     @Override
     public String deployApp(Long appId, UserVO loginUser) {
         // 1. 参数校验
@@ -108,7 +112,7 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
 
     @Override
     @Transactional
-    public Flux<ServerSentEvent<String>> chatToGenCode(Long appId, String message, UserVO loginUser) {
+    public Flux<String> chatToGenCode(Long appId, String message, UserVO loginUser) {
         ThrowUtils.throwIf(!StrUtil.isNotBlank(message),ErrorCode.NOT_FOUND_ERROR,"描述不能为空");
         ThrowUtils.throwIf(appId == null||appId<0,ErrorCode.PARAMS_ERROR);
         App appDo = this.getById(appId);
@@ -132,93 +136,8 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         );
         ThrowUtils.throwIf(result < 0, ErrorCode.SYSTEM_ERROR, "用户消息存储失败");
         Flux<String> stringFlux = aiCodeGeneratorFacade.generateCode(message, codeGenTypeEnum, appId);
-        // 使用线程安全的 StringBuilder 收集完整内容
-        StringBuilder aiMessage = new StringBuilder();
-        
-        return stringFlux
-                // 收集每个数据块
-                .doOnNext(chunk -> {
-                    if (chunk != null) {
-                        synchronized (aiMessage) {
-                            aiMessage.append(chunk);
-                        }
-                    }
-                })
-                // 转换为 SSE 事件
-                .map(chunk -> {
-                    Map<String, String> wrapper = Map.of("d", chunk != null ? chunk : "");
-                    String jsonData = JSONUtil.toJsonStr(wrapper);
-                    return ServerSentEvent.<String>builder().data(jsonData).build();
-                })
-                // 确保在流完成时保存完整消息
-                .doOnTerminate(() -> {
-                    // 无论是正常完成还是异常终止，都尝试保存已收集的内容
-                    synchronized (aiMessage) {
-                        String messageContent = aiMessage.toString();
-                        if (StrUtil.isNotBlank(messageContent)) {
-                            try {
-                                Long resultAi = chatHistoryService.saveMessage(
-                                        ChatHistoryMessageSaveRequest.builder()
-                                                .message(messageContent)
-                                                .messageType(ChatMessageTypeEnum.AI.getValue())
-                                                .appId(appId).build(), loginUser
-                                );
-                                if (resultAi < 0) {
-                                    log.error("保存 AI 消息失败, appId={}, userId={}, messageLength={}", 
-                                            appId, loginUser.getId(), messageContent.length());
-                                } else {
-                                    log.debug("AI 消息保存成功, appId={}, userId={}, messageLength={}", 
-                                            appId, loginUser.getId(), messageContent.length());
-                                }
-                            } catch (Exception e) {
-                                log.error("保存 AI 消息异常, appId={}, userId={}, messageLength={}", 
-                                        appId, loginUser.getId(), messageContent.length(), e);
-                            }
-                        } else {
-                            log.warn("AI 消息内容为空, appId={}, userId={}", appId, loginUser.getId());
-                        }
-                    }
-                })
-                // 在流正常完成时发送 done 事件
-                .concatWith(Mono.just(ServerSentEvent.<String>builder().event("done").data("").build()))
-                // 错误处理：先确保已收集的数据被保存，再处理错误
-                .onErrorResume(error -> {
-                    // 先保存已收集的内容
-                    synchronized (aiMessage) {
-                        String messageContent = aiMessage.toString();
-                        if (StrUtil.isNotBlank(messageContent)) {
-                            try {
-                                chatHistoryService.saveMessage(
-                                        ChatHistoryMessageSaveRequest.builder()
-                                                .message(messageContent)
-                                                .messageType(ChatMessageTypeEnum.AI.getValue())
-                                                .appId(appId).build(), loginUser
-                                );
-                                log.info("异常情况下保存部分 AI 消息, appId={}, userId={}, messageLength={}", 
-                                        appId, loginUser.getId(), messageContent.length());
-                            } catch (Exception e) {
-                                log.error("异常情况下保存 AI 消息失败, appId={}, userId={}", 
-                                        appId, loginUser.getId(), e);
-                            }
-                        }
-                    }
-                    
-                    // 客户端主动断开或网络 IO 问题，直接忽略避免再次触发 async dispatch
-                    if (error instanceof ClientAbortException || error instanceof java.io.IOException) {
-                        log.warn("客户端断开 SSE 连接, appId={}, userId={}", appId, loginUser.getId());
-                        return Flux.empty();
-                    }
-                    
-                    // 其他错误，发送错误事件
-                    log.error("生成代码流异常, appId={}, userId={}", appId, loginUser.getId(), error);
-                    return Flux.just(
-                            ServerSentEvent.<String>builder().event("error").data(error.getMessage()).build(),
-                            ServerSentEvent.<String>builder().event("done").data("").build()
-                    );
-                })
-                // 添加背压控制，确保数据不会丢失
-                .onBackpressureBuffer(1000);
-
+        //收集Ai响应的内容，处理
+        return executor.doExecute(stringFlux,chatHistoryService,appId, UserVO.toEntity(loginUser),codeGenTypeEnum);
     }
 
     @Override

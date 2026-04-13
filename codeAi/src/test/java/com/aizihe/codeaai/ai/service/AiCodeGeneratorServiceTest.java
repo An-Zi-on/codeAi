@@ -1,10 +1,14 @@
 package com.aizihe.codeaai.ai.service;
 
-import com.aizihe.codeaai.core.AiCodeGeneratorFacade;
+import com.aizihe.codeaai.ai.AiCodeGeneratorFacade;
+import com.aizihe.codeaai.enums.CodeGenTypeEnum;
 import jakarta.annotation.Resource;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import reactor.core.publisher.Flux;
+
+import java.util.List;
 
 @SpringBootTest
 class AiCodeGeneratorServiceTest {
@@ -38,6 +42,19 @@ class AiCodeGeneratorServiceTest {
         //Assertions.assertNotNull(result);
         //String completeContent = String.join("", result);
         //Assertions.assertNotNull(completeContent);
+    }
+
+    @Test
+    void generateVueProjectCodeStream() {
+        Flux<String> codeStream = aiCodeGeneratorFacade.generateAndSaveCodeStream(
+                "简单的任务记录网站，总代码量不超过 200 行",
+                 1L,CodeGenTypeEnum.VUE_PROJECT);
+        // 阻塞等待所有数据收集完成
+        List<String> result = codeStream.collectList().block();
+        // 验证结果
+        Assertions.assertNotNull(result);
+        String completeContent = String.join("", result);
+        Assertions.assertNotNull(completeContent);
     }
 
 }
